@@ -1,18 +1,18 @@
 # Minecraft 自动瞄准专项反作弊插件 — 交接文档
 
-> 版本:v0.3 | 日期:2026-11-01
+> 版本:v0.4 | 日期:2026-11-01
 > 范围:项目目标、与 Grim 的差异定位、REA 对象与方法、Phase 1（针对锁定作弊 mod）落地方案。
 
 ---
 
 ## 0. 速览(TL;DR)
 
-- **第一期目标**:对仓库内锁定的作弊 mod **Meteor Client `26.3-15`**（[`cheat-mod/`](cheat-mod/)）做 **REA**，再写出**针对性**的服务端反作弊插件（口语可称「反作弊 mod」，形态是 **Spigot/Paper 插件**，不是 Fabric 客户端模组）。
-- **对抗焦点**:该 Meteor 构建中的 **KillAura / Rotations / BowAimbot** 等自动瞄准能力；做到比 Grim 开源「Reach/Hitboxes 间接约束」更强的专项覆盖。
-- **验证平台**:简幻欢公益服 + 本地/镜像测试服；部署见 [`docs/platform/simpfun.md`](docs/platform/simpfun.md)。
+- **第一期目标**:对仓库内锁定的作弊 mod **Meteor Client `0.5.8`（MC 1.21 / 1.21.1）**（[`cheat-mod/meteor-client-0.5.8-1.21.1.jar`](cheat-mod/)）做 **REA**，再写出**针对性**的服务端反作弊插件（口语可称「反作弊 mod」，形态是 **Spigot/Paper 插件**，不是 Fabric 客户端模组）。
+- **对抗焦点**:该构建中的 **KillAura / Rotations / BowAimbot** 等自动瞄准能力；做到比 Grim 开源「Reach/Hitboxes 间接约束」更强的专项覆盖。
+- **验证平台**:简幻欢公益服（**Spigot 1.21**）+ SFTP 部署；见 [`docs/platform/simpfun.md`](docs/platform/simpfun.md)。
 - **方法论**:`REA 该 jar/同源码 → 服务端可观测特征 → 写检测 → 用同一份 Meteor 真机验证 → 迭代`。
-- **当前第一步**:对 `KillAura` + `Rotations` 做静态分析并产出分析卡（源码对照 commit `e3a2e779…`）。
-- **阻塞项**:Meteor 依赖 **MC ~26.3**；当前简幻欢实例是 **Spigot 1.21**——**协议不兼容**，联调前必须统一版本（升服、换测试实例、或另建 26.3 本地服）。
+- **当前第一步**:对 `0.5.8` 的 `KillAura` + `Rotations` 做静态分析并产出分析卡。
+- **版本**:已用归档构建对齐私服；`26.3-15` 仅留档、不参与第一期联机。
 - **核心原则**:**客户端不可信**。
 
 ---
@@ -37,7 +37,7 @@
 
 | 层级 | 目标 |
 |---|---|
-| **Phase 1(当前)** | 锁定对象 **Meteor 26.3-15**;REA → 服务端瞄准专项插件 v1 → 同版本服上用该 jar 验证 |
+| **Phase 1(当前)** | 锁定对象 **Meteor 0.5.8 (1.21/1.21.1)**;REA → 服务端瞄准专项插件 v1 → 简幻欢/同版本服用该 jar 验证 |
 | **中期** | 覆盖该 Meteor 更多战斗绕过配置;视需要扩到其他开源端 |
 | **长期** | 闭源瞄准类、数据回放;非瞄准类别另立项 |
 
@@ -85,30 +85,30 @@
 
 | 项 | 值 |
 |---|---|
-| 路径 | [`cheat-mod/meteor-client-26.3-15.jar`](cheat-mod/meteor-client-26.3-15.jar) |
-| 版本 | Meteor Client **26.3-15** |
-| commit | `e3a2e77967629d216e127b5ceecf71fb15f9d2e5` |
-| MC | **~26.3**(与简幻欢当前 Spigot **1.21** 不一致 → 见阻塞项) |
+| 路径 | [`cheat-mod/meteor-client-0.5.8-1.21.1.jar`](cheat-mod/meteor-client-0.5.8-1.21.1.jar) |
+| 版本 | Meteor Client **0.5.8** |
+| MC | **`1.21` / `1.21.1`**(与简幻欢 Spigot **1.21** 对齐) |
+| 来源 | Meteor Archive（`maninmyvan.github.io/meteor-archive`） |
 | 说明 | [`cheat-mod/README.md`](cheat-mod/README.md)、[`docs/rea/meteor/README.md`](docs/rea/meteor/README.md) |
+| 非本期 | `meteor-client-26.3-15.jar`（MC 26.3，进不了当前私服） |
 
-**模块优先级(已从 jar 确认)**
+**模块优先级(0.5.8 jar 已确认含 KillAura / BowAimbot / Hitboxes)**
 
 | 优先级 | 模块 | 备注 |
 |---|---|---|
-| **P0** | `KillAura` | `RotationMode`: **Always / OnHit / None**;含 range、walls-range、max-targets、TPS-sync、custom-delay 等 |
-| **P0** | `Rotations` 工具类 | 旋转队列、`clientSide` / `sendPacket`——静默与可见瞄准的关键 |
+| **P0** | `KillAura` | 旋转模式与参数以 0.5.8 为准(静态分析时再核对枚举名) |
+| **P0** | `Rotations` 工具类 | 静默/发包旋转关键 |
 | **P1** | `BowAimbot` | 弓弩自动瞄准 |
-| **P1** | `Hitboxes`(客户端) | 扩大碰撞箱,影响「能打到」的手感与 Reach 对抗 |
-| 非本期主路径 | CrystalAura / AnchorAura / BedAura 等 | 可留中期 |
+| **P1** | `Hitboxes`(客户端) | 扩 hitbox ↔ 服务端 Reach |
+| 非本期主路径 | CrystalAura 等 | 可留中期 |
 
-> 此构建**无**独立 `AimAssist` 类;近战自动瞄准 ≈ KillAura + Rotations。
+> 近战自动瞄准 ≈ KillAura + Rotations（通常无独立 AimAssist 类）。
 
 **Phase 1 门禁清单**
 
 ```
-☑ 锁定作弊 jar 与版本/commit
-□ 解决 MC 版本对齐(26.3 测试服 或 更换可联机的 Meteor 构建)
-□ 隔离 VM 能带该 Meteor 进同版本服并开关 KillAura
+☑ 锁定可进 1.21 私服的作弊 jar（Meteor 0.5.8）
+□ 隔离 VM：Fabric 1.21/1.21.1 + 该 jar，能进简幻欢并开关 KillAura
 □ 完成 KillAura + Rotations 分析卡(先静态,再动态)
 □ 再实现服务端检测插件 v1
 ```
@@ -491,8 +491,8 @@ Lin-s-Ant1-cheat-in-minecraft/
 
 | # | 问题 | 影响 | 建议默认 |
 |---|---|---|---|
-| 1 | **版本对齐**:Meteor 要 **MC 26.3**,简幻欢现为 **Spigot 1.21** | 无法联机验证 | **优先**:本地/新实例开 26.3 测试服;或换与 1.21 匹配的 Meteor 再测公益服 |
-| 1b | 服务端用 Paper 还是 Spigot?(在目标 MC 版本上) | API/生态 | 同版本下优先 Paper |
+| 1 | 客户端用 **1.21 还是 1.21.1** 装 Meteor 0.5.8? | 进服兼容 | 两者均在 depends 内;进不去再开 Via |
+| 1b | 服务端维持 Spigot 还是改 Paper 1.21.x? | API/生态 | 同大版本下优先 Paper |
 | 1c | 对抗实验是否与公益游玩**分实例**? | 误伤玩家风险 | 有条件则分实例;否则错峰 |
 | 2 | Phase 1 作弊端是否锁定 **Meteor**? | REA 起点 | 是;备选 LiquidBounce |
 | 3 | 与 Grim 关系:独立 / 共存? | 架构与处罚 | 测试服先独立;正式服再定 |
@@ -505,17 +505,16 @@ Lin-s-Ant1-cheat-in-minecraft/
 ## 13. 接手近期行动清单(Phase 1)
 
 ```
-Day 1  ☑ 锁定 cheat-mod/meteor-client-26.3-15.jar
-       □ 拍板版本策略:上 26.3 测试服,还是换 1.21 可用的 Meteor 构建
-       □ 禁外网 VM 快照;安装 MC 26.3 + Fabric + 该 Meteor(若走 26.3 路线)
-Day 2  □ 对照上游 commit e3a2e779 读 KillAura.java / Rotations.java
+Day 1  ☑ 锁定 meteor-client-0.5.8-1.21.1.jar（对齐 Spigot 1.21）
+       □ 禁外网 VM：Fabric 1.21/1.21.1 + 该 jar，确认能进简幻欢
+Day 2  □ 对照 0.5.8 时期源码/反编译读 KillAura + Rotations
        □ 填写 docs/rea/meteor/killaura.md 静态部分
-Day 3  □ 同版本服联机;录制 正常 vs KillAura(Always/OnHit/None) 包
-Day 4  □ 插件骨架:PacketEvents 记旋转与攻击;部署到测试服
+Day 3  □ 联机录制 正常 vs KillAura 各旋转模式 包
+Day 4  □ 插件骨架:PacketEvents 记旋转与攻击;SFTP 部署
 Day 5  □ 按分析卡实现第一批 Aim* 检测并真机回归
 ```
 
-**近期唯一主路径**:REA 该 Meteor → 针对性服务端插件 → 同版本服验证。
+**近期唯一主路径**:REA Meteor 0.5.8 → 针对性服务端插件 → 简幻欢验证。
 
 ---
 
