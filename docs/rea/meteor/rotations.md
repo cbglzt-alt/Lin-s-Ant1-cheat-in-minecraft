@@ -1,11 +1,12 @@
 # 模块分析卡: Meteor Client 0.5.8 / Rotations
 
-- 客户端版本 / 提交: **0.5.8**；上游 `v0.5.8`（与 0.5.9 Rotations 逻辑一致）
-- 分析日期 / 分析人: 2026-11-01 / REA 静态
+- 客户端版本 / 提交: **0.5.8**；上游 `v0.5.8`
+- 分析日期 / 分析人: 2026-11-01 / REA 静态（已对 0.5.8 jar 核实）
 - 对应 MC 版本: 1.21 / 1.21.1
 - 类路径: `meteordevelopment.meteorclient.utils.player.Rotations`
 - 挂钩: `ClientPlayerEntityMixin` → `SendMovementPacketsEvent.Pre/Post`
 - 全局配置: `Config.rotationHoldTicks`（设置名 `rotation-hold`，**默认 4**）
+- 发包: `LookAndOnGround(yaw, pitch, onGround)`（本版本三参；勿与 1.21.2+ 四参构建混淆）
 
 ## 1. 功能概述
 

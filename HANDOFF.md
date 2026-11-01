@@ -507,9 +507,10 @@ Lin-s-Ant1-cheat-in-minecraft/
 ```
 Day 1  ☑ 锁定 meteor-client-0.5.8-1.21.1.jar（对齐 Spigot 1.21）
        □ 禁外网 VM：Fabric 1.21/1.21.1 + 该 jar，确认能进简幻欢
-Day 2  ☑ KillAura + Rotations 静态卡（docs/rea/meteor/；由 0.5.9 对照迁入）
+Day 2  ☑ KillAura + Rotations 静态卡（docs/rea/meteor/ 唯一权威）
        ☑ 录包矩阵 docs/rea/meteor/captures.md
        ☑ 插件骨架 plugin/（/ac record + PacketEvents）
+       ☑ 清理：删除 docs/rea/meteor-0.5.9 重复卡
 Day 3  □ 构建部署 LinAntiAim + PacketEvents 到简幻欢
        □ 按 captures.md 录 A1/B1/B2/B3（+C1 或 C2）
        □ summarize-capture.py → 回填 killaura.md / rotations.md §4

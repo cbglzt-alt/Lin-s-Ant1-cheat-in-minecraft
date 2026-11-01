@@ -1,6 +1,6 @@
 # 模块分析卡: Meteor Client 0.5.8 / KillAura
 
-- 客户端版本 / 提交: **0.5.8** jar `meteor-client-0.5.8-1.21.1.jar`；上游 tag `v0.5.8` @ `37c5c5c6`；静态与 0.5.9 常量池/设置一致，已对照锁定
+- 客户端版本 / 提交: **0.5.8** jar `meteor-client-0.5.8-1.21.1.jar`；上游 tag `v0.5.8` @ `37c5c5c6`
 - 分析日期 / 分析人: 2026-11-01 / REA 静态
 - 对应 MC 版本: **1.21 / 1.21.1**（Fabric client；对齐简幻欢 Spigot 1.21）
 - 类路径: `meteordevelopment.meteorclient.systems.modules.combat.KillAura`
@@ -171,7 +171,7 @@ onTick Pre:
 - [ ] 合法 Bot：人类噪声转头 + 1.9 冷却敲击  
 - [ ] 作弊 Bot：重放 Always / OnHit / None；max-targets=3  
 - [ ] 真机 VM：本 jar + Fabric 1.21/1.21.1；默认配置进 `play.simpfun.cn:17184` 录包  
-- [ ] 对照：0.5.9 卡仅作备选；阈值以本版本 1.21 录包为准  
+- [ ] 阈值以本版本 1.21 录包为准（勿用其他 Meteor 构建估阈值）
 
 ## 附：关键 intermediary（本 jar）
 

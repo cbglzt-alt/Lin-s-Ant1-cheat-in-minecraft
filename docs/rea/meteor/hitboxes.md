@@ -1,8 +1,8 @@
-# 模块分析卡: Meteor Client 0.5.9 / Hitboxes
+# 模块分析卡: Meteor Client 0.5.8 / Hitboxes
 
-- 客户端版本 / 提交: **0.5.9**
+- 客户端版本 / 提交: **0.5.8**
 - 分析日期 / 分析人: 2026-11-01 / REA 静态
-- 对应 MC 版本: 1.21.2 / 1.21.3
+- 对应 MC 版本: 1.21 / 1.21.1
 - 类路径: `...systems.modules.combat.Hitboxes`
 - Mixin: `EntityMixin.onGetTargetingMargin` → `Entity.getTargetingMargin()`
 - 优先级: **P1**

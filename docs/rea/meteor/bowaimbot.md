@@ -1,8 +1,8 @@
-# 模块分析卡: Meteor Client 0.5.9 / BowAimbot
+# 模块分析卡: Meteor Client 0.5.8 / BowAimbot
 
-- 客户端版本 / 提交: **0.5.9**
+- 客户端版本 / 提交: **0.5.8**
 - 分析日期 / 分析人: 2026-11-01 / REA 静态
-- 对应 MC 版本: 1.21.2 / 1.21.3
+- 对应 MC 版本: 1.21 / 1.21.1
 - 类路径: `...systems.modules.combat.BowAimbot`
 - 优先级: **P1**（Phase 1 主路径仍是 KillAura）
 

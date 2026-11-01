@@ -6,8 +6,7 @@
 |---|---|
 | [`HANDOFF.md`](HANDOFF.md) | 目标、REA、Phase 1 |
 | [`cheat-mod/README.md`](cheat-mod/README.md) | 作弊 jar（**主目标 0.5.8**） |
-| [`docs/rea/meteor/`](docs/rea/meteor/) | 0.5.8 分析卡 + [`captures.md`](docs/rea/meteor/captures.md) 录包矩阵 |
-| [`docs/rea/meteor-0.5.9/`](docs/rea/meteor-0.5.9/) | 0.5.9 对照（不联机） |
+| [`docs/rea/meteor/`](docs/rea/meteor/) | **唯一** 0.5.8 分析卡 + [`captures.md`](docs/rea/meteor/captures.md) |
 | [`plugin/`](plugin/) | LinAntiAim 录包插件（`/ac record`） |
 | [`docs/platform/simpfun.md`](docs/platform/simpfun.md) | 简幻欢对接 |
 
