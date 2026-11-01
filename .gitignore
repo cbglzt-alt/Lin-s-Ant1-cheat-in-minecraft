@@ -18,7 +18,27 @@
 *.zip
 *.tar.gz
 *.rar
+!tools/**/*.jar
+
+# Cheat client binaries (keep README only in git; analyze locally / in VM)
+cheat-mod/*.jar
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Local secrets / platform credentials (never commit)
+.secrets/
+*.env
+!.env.example
+!.secrets/*.example
+
+# Local server mirrors / downloaded panel files
+/server/
+/tmp-remote/
+.idea/
+.vscode/
+*.iml
+.gradle/
+build/
+out/
