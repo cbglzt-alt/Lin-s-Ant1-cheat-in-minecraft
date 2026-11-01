@@ -125,6 +125,7 @@
 - [ ] 是否将镜像从 Spigot 1.21 **换成 Paper 1.21.x**
 - [ ] 是否单独开「对抗测试实例」，与公益游玩实例隔离
 - [ ] 正式服玩家白名单 / 权限组（LuckPerms 等）是否已有，检测处罚如何对接
-- [ ] 验证 `.secrets/simpfun.env` 后跑通 `deploy-to-simpfun.sh`
-- [ ] VM 内 Fabric 1.21/1.21.1 + Meteor 0.5.8 实测进 `play.simpfun.cn:17184`
+- [x] 验证 `.secrets/simpfun.env` 后跑通 `deploy-to-simpfun.sh`（已上传 PacketEvents 2.14.0 + LinAntiAim）
+- [ ] 面板**重启**实例后确认两插件启用
+- [ ] VM 内 Fabric 1.21/1.21.1 + Meteor 0.5.8 实测进 `play.simpfun.cn:17184` 并按 `docs/rea/meteor/captures.md` 录包
 

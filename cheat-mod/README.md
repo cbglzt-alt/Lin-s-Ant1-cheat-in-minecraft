@@ -24,7 +24,7 @@
 | **Hitboxes**（客户端扩 hitbox） | `.../combat/Hitboxes` | P1 |
 | **Rotations** 工具 | `.../utils/player/Rotations` | P0 配套 |
 
-> 静态分析时优先对照上游 tag/`0.5.8` 时期源码；动态验证必须用本目录这份 jar。
+> Phase 1 **已锁定本文件**。静态卡：`docs/rea/meteor/`；动态录包：`docs/rea/meteor/captures.md`（必须用本 jar，勿用 0.5.9/26.3）。
 
 ---
 
@@ -32,7 +32,7 @@
 
 | 文件 | MC 依赖 | 用途 |
 |---|---|---|
-| `meteor-client-0.5.9-1.21.2-3.jar` | 1.21.2 / 1.21.3 | 若私服日后升到 1.21.2+ 再用 |
+| `meteor-client-0.5.9-1.21.2-3.jar` | 1.21.2 / 1.21.3 | 若私服日后升到 1.21.2+ 再用；静态 REA 见 [`docs/rea/meteor-0.5.9/`](../docs/rea/meteor-0.5.9/) |
 | `meteor-client-26.3-15.jar` | **~26.3**（Java ≥ 25） | **无法**进当前 1.21 私服；仅作对照，**非**第一期联机对象 |
 
 ---

@@ -23,6 +23,15 @@
 # Cheat client binaries (keep README only in git; analyze locally / in VM)
 cheat-mod/*.jar
 
+# Local REA workspace (CFR/jadx output, extracted classes) — do not commit
+.rea-work/
+
+# Plugin build + pulled capture dumps
+plugin/.gradle/
+plugin/build/
+replay/captures/
+*.jsonl
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*

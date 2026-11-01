@@ -1,0 +1,3 @@
+# Phase 1: recorder only. Detection thresholds come after captures.md is filled.
+recorder:
+  enabled: true

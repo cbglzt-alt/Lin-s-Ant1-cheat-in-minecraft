@@ -507,14 +507,17 @@ Lin-s-Ant1-cheat-in-minecraft/
 ```
 Day 1  ☑ 锁定 meteor-client-0.5.8-1.21.1.jar（对齐 Spigot 1.21）
        □ 禁外网 VM：Fabric 1.21/1.21.1 + 该 jar，确认能进简幻欢
-Day 2  □ 对照 0.5.8 时期源码/反编译读 KillAura + Rotations
-       □ 填写 docs/rea/meteor/killaura.md 静态部分
-Day 3  □ 联机录制 正常 vs KillAura 各旋转模式 包
-Day 4  □ 插件骨架:PacketEvents 记旋转与攻击;SFTP 部署
-Day 5  □ 按分析卡实现第一批 Aim* 检测并真机回归
+Day 2  ☑ KillAura + Rotations 静态卡（docs/rea/meteor/；由 0.5.9 对照迁入）
+       ☑ 录包矩阵 docs/rea/meteor/captures.md
+       ☑ 插件骨架 plugin/（/ac record + PacketEvents）
+Day 3  □ 构建部署 LinAntiAim + PacketEvents 到简幻欢
+       □ 按 captures.md 录 A1/B1/B2/B3（+C1 或 C2）
+       □ summarize-capture.py → 回填 killaura.md / rotations.md §4
+Day 4  □ 据 §4 定 provisional 阈值；补齐 PlayerData 若需
+Day 5  □ 实现第一批 Aim* 检测并真机回归
 ```
 
-**近期唯一主路径**:REA Meteor 0.5.8 → 针对性服务端插件 → 简幻欢验证。
+**近期唯一主路径**:REA Meteor **0.5.8** → 动态录包填 §4 → 针对性检测 → 简幻欢验证。
 
 ---
 

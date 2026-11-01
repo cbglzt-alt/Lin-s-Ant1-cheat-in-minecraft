@@ -1,31 +1,31 @@
-# REA · Meteor Client 0.5.8（MC 1.21 / 1.21.1）
-
-锁定对象见 [`cheat-mod/README.md`](../../../cheat-mod/README.md)。
+# REA · Meteor Client 0.5.8（MC 1.21 / 1.21.1）— Phase 1 锁定
 
 | 项 | 值 |
 |---|---|
-| 主 jar | `cheat-mod/meteor-client-0.5.8-1.21.1.jar` |
-| 私服 | 简幻欢 Spigot **1.21** |
-| 旧 jar `26.3-15` | 不纳入第一期联机 |
+| **锁定 jar** | `cheat-mod/meteor-client-0.5.8-1.21.1.jar` |
+| 版本 | **0.5.8**（depends `1.21` / `1.21.1`） |
+| 上游 tag | [`v0.5.8`](https://github.com/MeteorDevelopment/meteor-client/releases/tag/v0.5.8) @ `37c5c5c6` |
+| 私服 | 简幻欢 Spigot **1.21** · `play.simpfun.cn:17184` |
+| 对照 | [`../meteor-0.5.9/`](../meteor-0.5.9/)（瞄准逻辑静态一致；**不参与第一期联机**） |
+| `26.3-15` | 不纳入第一期 |
 
-## 第一期范围
+## 门禁进度
 
-**目标作弊行为**：自动瞄准 / 自动锁定攻击（以 KillAura 为主，BowAimbot 为辅）。  
-**交付物**：部署到私服的**服务端反作弊插件**（不是 Fabric 客户端 mod）。
+```
+☑ 锁定 Meteor 0.5.8（对齐 Spigot 1.21）
+☑ KillAura + Rotations 静态分析卡
+□ 动态录包（见 captures.md）填满分析卡 §4
+□ 再实现 Aim* 检测阈值
+```
 
-## 分析顺序
-
-1. `KillAura`（含旋转模式枚举，以 0.5.8 字节码/同源源码为准）
-2. `utils/player/Rotations`（发包旋转 vs 仅客户端旋转）
-3. 动态录包：默认配置 vs 各旋转模式（连简幻欢或本地 1.21）
-4. （可选）`BowAimbot`、`Hitboxes`
-
-## 产出文件
+## 产出
 
 | 文件 | 状态 |
 |---|---|
-| `killaura.md` | 待写（静态 → 动态） |
-| `rotations.md` | 待写 |
-| `bowaimbot.md` | 可选 |
+| [`killaura.md`](killaura.md) | 静态完成；§4 待录包 |
+| [`rotations.md`](rotations.md) | 静态完成；§4 待录包 |
+| [`captures.md`](captures.md) | **动态录包会话矩阵 / 操作清单** |
+| `bowaimbot.md` / `hitboxes.md` | P1，可暂用 0.5.9 卡 |
 
-模板：[`../TEMPLATE.md`](../TEMPLATE.md)。
+模板：[`../TEMPLATE.md`](../TEMPLATE.md)。  
+录包插件：仓库根目录 `plugin/`（`/ac record`）。

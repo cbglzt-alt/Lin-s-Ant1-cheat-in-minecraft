@@ -1,0 +1,17 @@
+name: LinAntiAim
+version: ${version}
+main: dev.lin.antiaim.LinAntiAimPlugin
+api-version: "1.21"
+authors: [Lin]
+description: Aim anticheat — Phase 1 packet recorder
+website: https://github.com/local/Lin-s-Ant1-cheat-in-minecraft
+depend: [packetevents]
+commands:
+  ac:
+    description: LinAntiAim control
+    usage: /ac record <start|stop|status> [label]
+    permission: linantiaim.admin
+permissions:
+  linantiaim.admin:
+    description: Record and admin commands
+    default: op
