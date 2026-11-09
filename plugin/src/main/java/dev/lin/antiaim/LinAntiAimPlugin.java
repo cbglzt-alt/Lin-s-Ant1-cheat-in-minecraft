@@ -2,6 +2,7 @@ package dev.lin.antiaim;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import dev.lin.antiaim.command.AcCommand;
+import dev.lin.antiaim.record.BukkitAttackListener;
 import dev.lin.antiaim.record.CaptureService;
 import dev.lin.antiaim.record.PacketCaptureListener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +19,7 @@ public final class LinAntiAimPlugin extends JavaPlugin {
         saveDefaultConfig();
         this.captureService = new CaptureService(this);
         PacketEvents.getAPI().getEventManager().registerListener(new PacketCaptureListener(captureService));
+        getServer().getPluginManager().registerEvents(new BukkitAttackListener(captureService), this);
 
         var ac = getCommand("ac");
         if (ac != null) {

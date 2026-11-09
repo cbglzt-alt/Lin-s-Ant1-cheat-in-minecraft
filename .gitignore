@@ -29,8 +29,9 @@ cheat-mod/*.jar
 # Plugin build + pulled capture dumps
 plugin/.gradle/
 plugin/build/
-replay/captures/
+replay/captures/*.jsonl
 *.jsonl
+!replay/captures/*.md
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -51,3 +52,6 @@ replay_pid*
 .gradle/
 build/
 out/
+
+# macOS
+.DS_Store

@@ -16,19 +16,21 @@
 ☑ 锁定 Meteor 0.5.8（对齐 Spigot 1.21）
 ☑ KillAura + Rotations（+ BowAimbot / Hitboxes）静态分析卡
 ☑ 与 0.5.9 瞄准类字节码核对（结论：主路径等价）
-□ 动态录包（见 captures.md）填满分析卡 §4
-□ 再实现 Aim* 检测阈值
+☑ 动态录包 A1/B1/B2/B3/C1（2026-11-07；见 batch-2026-11-07.md）
+☑ look 向 §4 + AimSnap provisional
+□ 补录带 attack/alignDeg 的 B1/C1 后定 Align
+□ 实现 AimSnap 检测代码（告警-only）
 ```
 
 ## 产出
 
 | 文件 | 状态 |
 |---|---|
-| [`killaura.md`](killaura.md) | P0 静态完成；§4 待录包 |
-| [`rotations.md`](rotations.md) | P0 静态完成；§4 待录包 |
-| [`captures.md`](captures.md) | 动态录包会话矩阵 |
-| [`bowaimbot.md`](bowaimbot.md) | P1 静态 |
-| [`hitboxes.md`](hitboxes.md) | P1 静态 |
+| [`killaura.md`](killaura.md) | P0 静+动（look）；Align 待补录 |
+| [`rotations.md`](rotations.md) | P0 静+动（look） |
+| [`captures.md`](captures.md) / [`batch-2026-11-07.md`](batch-2026-11-07.md) | 矩阵 + 本批汇总 |
+| [`../detections/aim-provisional.md`](../detections/aim-provisional.md) | AimSnap 候选阈值 |
+| [`bowaimbot.md`](bowaimbot.md) / [`hitboxes.md`](hitboxes.md) | P1 静态 |
 
 模板：[`../TEMPLATE.md`](../TEMPLATE.md)。  
 录包插件：`plugin/`（`/ac record`）。

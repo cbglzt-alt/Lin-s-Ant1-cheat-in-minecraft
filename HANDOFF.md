@@ -511,9 +511,9 @@ Day 2  ☑ KillAura + Rotations 静态卡（docs/rea/meteor/ 唯一权威）
        ☑ 录包矩阵 docs/rea/meteor/captures.md
        ☑ 插件骨架 plugin/（/ac record + PacketEvents）
        ☑ 清理：删除 docs/rea/meteor-0.5.9 重复卡
-Day 3  □ 构建部署 LinAntiAim + PacketEvents 到简幻欢
-       □ 按 captures.md 录 A1/B1/B2/B3（+C1 或 C2）
-       □ summarize-capture.py → 回填 killaura.md / rotations.md §4
+Day 3  ☑ 构建部署 LinAntiAim + PacketEvents 到简幻欢
+       ☑ 录 A1/B1/B2/B3/C1（标签纠正后入库 replay/captures/）
+       ☑ look 统计回填 §4 + aim-provisional；□ 补录带 attack 的 B1/C1
 Day 4  □ 据 §4 定 provisional 阈值；补齐 PlayerData 若需
 Day 5  □ 实现第一批 Aim* 检测并真机回归
 ```

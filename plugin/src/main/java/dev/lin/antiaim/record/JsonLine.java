@@ -18,7 +18,7 @@ final class JsonLine {
                 kv("player", quote(player.getName())),
                 kv("uuid", quote(player.getUniqueId().toString())),
                 kv("world", quote(player.getWorld().getName())),
-                kv("protocol", "c2s-look-attack-swing")
+                kv("protocol", quote("c2s-look-attack-swing"))
         );
     }
 

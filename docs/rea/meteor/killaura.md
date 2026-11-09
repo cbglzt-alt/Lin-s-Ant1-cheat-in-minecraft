@@ -113,14 +113,23 @@ onTick Pre:
 
 ## 4. 动态观测(数据对比)
 
-> 静态假设已锁定。填表步骤见 [`captures.md`](captures.md)；**阈值须录包后填实，禁止拍脑袋。**
+> 批次 **2026-11-07**（Lincoln @ 简幻欢）。原始 jsonl：`replay/captures/`（已按操作者说明纠正 B1↔C1 标签，见同目录 `LABEL_CORRECTIONS.md` / [`batch-2026-11-07.md`](batch-2026-11-07.md)）。  
+> **数据缺陷**：本批全部 `attacks=0`（客户端 `InteractEntity` 未进录包）；`alignDeg` / AuraSwitch **本批无法填实**。下表以 **hasRot 的 |dYaw|** 与 swing 邻近 |dYaw| 为主。插件已补 Bukkit 伤害回退，需重部署后补录攻击场。
 
-| 特征 | 正常玩家 | 默认 KA (Always) | 绕过向配置 |
-|---|---|---|---|
-| 攻击瞬间视线–Body 中心角误差 | 有噪声、常不完全对准 | 极小、重复贴中心 | None：可很大；OnHit：仅攻击 tick 对准 |
-| Δyaw/Δpitch 步进 | 近似鼠标 GCD 网格 | 任意浮点瞬移 | 同左（仍无 GCD） |
-| 多目标 | 少见同冷却多实体 | max-targets>1 时同 delay 窗口连打 | 保持 1 |
-| 旋转保持 | 人手连续 | 停转后仍可能 hold `rotation-hold` tick | — |
+| 特征 | A1 合法 | B1 Always 单目标 | B2 OnHit | B3 None | C1 max3 多目标 |
+|---|---|---|---|---|---|
+| rotLooks / swings | 780 / 45 | 712 / 54 | 874 / **218** | 655 / 53 | 928 / 70 |
+| \|dYaw\| p50 / p90 / p99 | 0.83 / **6.0** / 31 | 1.55 / 7.1 / **136** | **4.88 / 64.9 / 170** | 1.65 / 6.6 / 42 | 1.65 / 9.1 / 92 |
+| \|dYaw\|≥20° 占比 | **2.2%** | 5.6% | **29.3%** | 3.1% | 4.7% |
+| swing 前≤150ms \|dYaw\| p50/p90 | 1.2 / 7.4 | 1.6 / 9.4 | 1.8 / 7.7 | 1.5 / 5.4 | 1.7 / 5.1 |
+| alignDeg@attack | N/A | N/A | N/A | N/A | N/A |
+
+**读数要点**
+
+1. **OnHit（B2）** 在纯 look 上已与合法显著分离（≥20° 旋转包近 3 成，p90≈65°）→ `AimSnap` 第一候选。
+2. **Always 单目标（B1）** 中位 Δyaw 接近合法，但 p99 出现超大尖峰；静默跟踪时多数 tick Δ 很小，需 **攻击瞬间 align** 才能稳抓（本批缺失）。
+3. **None（B3）** look 分布接近合法 → 验证「不转头」盲区；应用 Reach/视线，而非 AimSnap。
+4. **多目标（C1）** 在仅 look 统计上与 B1 接近；缺 attack 目标 id 时 **AuraSwitch 无法验收**。
 
 ## 5. 服务端可观测特征
 
@@ -141,15 +150,15 @@ onTick Pre:
 
 ## 6. 检测设计
 
-| 检测 | 判定逻辑（草案） | 阈值依据 | VL/缓冲 | 误报风险 |
+| 检测 | 判定逻辑（草案） | 阈值依据（provisional） | VL/缓冲 | 误报风险 |
 |---|---|---|---|---|
-| `AimSnap` | 攻击前 N tick 内 |Δyaw|+|Δpitch| 过大且终点对准目标 | 动态：默认 KA vs 合法 PvP | 中缓冲 | 传送、击退、载具、橡皮筋 |
-| `AimAttackAlign` | 攻击瞬间视线到 Body/AABB 的最小角误差滑动均值过低 | 默认 Always 应稳定告警 | 高缓冲 | 近距贴脸、极高感选手 |
-| `AimGCD` | 转头增量与 sens GCD 不一致占比 | 默认无伪造 → 高检出 | 中 | 改键鼠/拨盘、触控 |
-| `AuraSwitch` | 短窗多不同实体攻击 | max-targets 场景 | 低 | 群怪清场 |
-| `AttackOrder` | Look 突变与 Attack 固定时序 | 录包后 | 低 | 合法急转砍 |
+| `AimSnap` | 滑动窗内 hasRot 的 \|dYaw\|≥20° 占比，或 p90(\|dYaw\|) | A1≈2%/p90≈6°；B2≈29%/p90≈65° → 窗占比 **≥12%** 或 p90 **≥25°** 先告警 | 中；连续 2–3 窗 | 传送、击退、载具、橡皮筋 |
+| `AimAttackAlign` | 攻击瞬间 alignDeg 滑动均值过低 | **本批无 attack 数据**；补录后定 | **高**缓冲 | 近距贴脸、高感 |
+| `AimGCD` | 转头增量与 sens GCD 不一致占比 | 本批未算真 GCD；暂缓 | 中 | 改键鼠/触控 |
+| `AuraSwitch` | 短窗多不同实体攻击 | **本批无 attack**；补录 C1 | 低 | 群怪清场 |
+| `AttackOrder` | Look 突变与 Attack/Swing 时序 | 本批仅 swing；弱证据 | 低 | 合法急转砍 |
 
-> 未完成第 4 节录包前禁止拍脑袋定阈值（HANDOFF S3）。
+> 详见 [`../detections/aim-provisional.md`](../detections/aim-provisional.md)。**AimAttackAlign 未补录前不写死踢人阈值。**
 
 ## 7. 已知绕过与应对
 

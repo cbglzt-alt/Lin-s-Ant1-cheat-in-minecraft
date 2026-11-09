@@ -12,10 +12,7 @@
 | 录包插件 | 本仓库 `plugin/` → 构建后 `./tools/deploy-to-simpfun.sh …` |
 | 依赖插件 | **PacketEvents**（与 `plugin/build.gradle.kts` 同大版本）放入 `plugins/` |
 
-## 1. 会话矩阵（必须跑完的最小集）
-
-每场建议 **45–90s**，同一块场地、同一假人/对手距离（约 2.5–4 格）。  
-标签必须与 `/ac record start <label>` **完全一致**，便于脚本汇总。
+## 1. 会话矩阵
 
 | ID | label | 客户端 | Meteor 配置 | 要观察的特征 |
 |---|---|---|---|---|
@@ -26,55 +23,33 @@
 | **C1** | `C1-ka-max3` | 0.5.8 | 默认 + `max-targets=3` + 多目标 | AuraSwitch |
 | **C2** | `C2-ka-only-on-look` | 0.5.8 | `only-on-look=true` | 更像手动时的对齐分布 |
 
-可选加分：`C3-ka-custom-delay-5`（`custom-delay` + 低 hit-delay）——非门禁。
+## 2. 已完成批次
 
-HANDOFF 对照组：A = 合法，B = 默认，C = 绕过/变体（OnHit / None / only-on-look / 多目标）。
+见 [`batch-2026-11-07.md`](batch-2026-11-07.md)（含 B1/C1 标签纠正）。
 
-## 2. 操作步骤（每场）
-
-1. 服务端已加载 `LinAntiAim` + PacketEvents；OP 自己。
-2. 作弊 VM / 合法端进服，站到约定点；准备好假人或互砍同伴。
-3. 服务端执行：
-   ```
-   ac record start <label>
-   ```
-4. 按该场配置战斗至结束（不要中途改 label）。
-5. ```
-   ac record stop
-   ```
-6. 确认生成：`plugins/LinAntiAim/records/<timestamp>_<player>_<label>.jsonl`
-7. SFTP 拉回本地 `replay/captures/`（目录可自建；勿提交含玩家敏感信息的大包，可只交汇总）。
-
-一键拉取示例（有 SFTP 凭据时）：
-
-```bash
-./tools/simpfun-sftp.sh get plugins/LinAntiAim/records ./replay/captures
+```
+☑ A1 + B1 + B2 + B3 各 ≥1 场 jsonl（标签已纠正）
+☑ C1 多目标 ≥1 场
+☑ killaura.md / rotations.md §4 已用 look 统计填表
+☑ provisional AimSnap 写入 docs/detections/aim-provisional.md
+□ 补录带 attack/alignDeg 的 B1、C1（插件已修）
+□ 可选 C2
 ```
 
-## 3. 记录字段（插件 JSONL）
+原始文件放 `replay/captures/`（`*.jsonl` gitignore；`*.md` 可提交）。
+
+## 3. 操作步骤（每场）
+
+1. 确认 `LinAntiAim` + PacketEvents 已加载；OP 自己。  
+2. `/ac record start <label>` → 战斗 → `/ac record stop`  
+3. **停录后打开 jsonl：确认有 `type":"attack"` 且 `alignDeg`≥0**（否则本场作废重录）。  
+4. 拉回 `replay/captures/`，`python3 tools/summarize-capture.py …`
+
+## 4. 记录字段
 
 | type | 含义 |
 |---|---|
-| `session` | 开录元数据：label、玩家、协议时间 |
-| `look` | 带朝向的移动/旋转包：`yaw,pitch,x,y,z,onGround` |
-| `attack` | 攻击实体：目标 id/类型/位置、当时 look、`alignDeg`（视线到目标 Body 中心夹角） |
-| `swing` | 挥手动画 |
-| `session_end` | 停录：样本计数 |
-
-## 4. 汇总 → 写回分析卡 §4
-
-```bash
-python3 tools/summarize-capture.py replay/captures/*B1*.jsonl
-python3 tools/summarize-capture.py replay/captures/*A1*.jsonl
-```
-
-把输出的 Δyaw/Δpitch 分位数、攻击瞬间 `alignDeg`、可疑 GCD 比例填进 `killaura.md` §4，并注明 **数据文件名 / 日期**。
-
-## 5. 验收（动态完成定义）
-
-- [ ] A1 + B1 + B2 + B3 至少各 1 场有效 jsonl  
-- [ ] C1 或 C2 至少 1 场  
-- [ ] `killaura.md` §4 表不再是纯假设  
-- [ ] 明确 1–2 个「默认 Always 可稳定分开合法」的候选阈值（仍标 provisional）  
-
-未完成前：**不进入 S3 大规模写死阈值**（可继续完善录包插件）。
+| `session` / `session_end` | 元数据与计数 |
+| `look` | yaw/pitch/Δ、位置 |
+| `attack` | 目标 + **alignDeg**（伤害回退或包监听） |
+| `swing` | 挥手 |
