@@ -512,13 +512,17 @@ Day 2  ☑ KillAura + Rotations 静态卡（docs/rea/meteor/ 唯一权威）
        ☑ 插件骨架 plugin/（/ac record + PacketEvents）
        ☑ 清理：删除 docs/rea/meteor-0.5.9 重复卡
 Day 3  ☑ 构建部署 LinAntiAim + PacketEvents 到简幻欢
-       ☑ 录 A1/B1/B2/B3/C1（标签纠正后入库 replay/captures/）
-       ☑ look 统计回填 §4 + aim-provisional；□ 补录带 attack 的 B1/C1
-Day 4  □ 据 §4 定 provisional 阈值；补齐 PlayerData 若需
-Day 5  □ 实现第一批 Aim* 检测并真机回归
+       ☑ 录 A1/B1/B2/B3/C1 look（标签纠正）+ §4 / aim-provisional
+       ☑ 补录带 attack 的 B1 + 真 C2（2026-11-17）
+Day 4  ☑ 写下 S3 计划 docs/detections/implementation-plan.md
+       □ PlayerData + AlertService；AimSnap 告警-only
+       □ AimAttackAlign 仅日志骨架；告警带 captureLabel
+Day 5  □ 简幻欢 smoke（合法安静 / OnHit 告警）+ 对照 record jsonl
+       □（并行）补录带 attack 的 A1；P1 再补 C1
 ```
 
-**近期唯一主路径**:REA Meteor **0.5.8** → 动态录包填 §4 → 针对性检测 → 简幻欢验证。
+**下一步从这里接**:[`docs/detections/implementation-plan.md`](docs/detections/implementation-plan.md)。  
+**近期主路径**:REA 0.5.8 → 录包与 **AimSnap 告警对照优化** → 有合法 A1 attack 后再收紧 Align → 简幻欢验证。
 
 ---
 

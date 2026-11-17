@@ -135,7 +135,53 @@ public final class CaptureService {
             this.writer = writer;
         }
 
-        synchronized void writeRaw(String line) throws IOException {
+        public String label() {
+            return label;
+        }
+
+        public String fileName() {
+            return file.getFileName().toString();
+        }
+
+        public void syncLookFrom(float yaw, float pitch, boolean hasLook) {
+            this.lastYaw = yaw;
+            this.lastPitch = pitch;
+            this.hasLook = hasLook;
+        }
+
+        public synchronized void writeLook(double x, double y, double z, float yaw, float pitch,
+                                           boolean onGround, boolean hasPos, boolean hasRot) throws IOException {
+            writeRaw(JsonLine.look(this, x, y, z, yaw, pitch, onGround, hasPos, hasRot));
+            lookCount++;
+            if (hasRot) {
+                lastYaw = yaw;
+                lastPitch = pitch;
+                hasLook = true;
+            }
+        }
+
+        public synchronized void writeAttack(Player attacker, org.bukkit.entity.Entity target,
+                                             float yaw, float pitch) throws IOException {
+            lastYaw = yaw;
+            lastPitch = pitch;
+            hasLook = true;
+            writeRaw(JsonLine.attack(this, attacker, target, yaw, pitch));
+            attackCount++;
+        }
+
+        public synchronized void writeAttackUnknown(long t, float yaw, float pitch, int targetId) throws IOException {
+            writeRaw("{\"type\":\"attack\",\"t\":" + t
+                    + ",\"yaw\":" + yaw + ",\"pitch\":" + pitch
+                    + ",\"targetId\":" + targetId + ",\"targetType\":\"UNKNOWN\",\"alignDeg\":-1}");
+            attackCount++;
+        }
+
+        public synchronized void writeSwing() throws IOException {
+            writeRaw(JsonLine.swing());
+            swingCount++;
+        }
+
+        public synchronized void writeRaw(String line) throws IOException {
             writer.write(line);
             writer.newLine();
             writer.flush();

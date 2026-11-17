@@ -25,15 +25,20 @@
 
 ## 2. 已完成批次
 
-见 [`batch-2026-11-07.md`](batch-2026-11-07.md)（含 B1/C1 标签纠正）。
+- 11-07 look 矩阵：[`batch-2026-11-07.md`](batch-2026-11-07.md)（**B1↔C1 标签纠正**）  
+- 滚动汇总（含 11-17 attack 场）：[`../../replay/captures/SUMMARY.md`](../../replay/captures/SUMMARY.md)  
+- 检测开工计划：[`../detections/implementation-plan.md`](../detections/implementation-plan.md)
 
 ```
-☑ A1 + B1 + B2 + B3 各 ≥1 场 jsonl（标签已纠正）
-☑ C1 多目标 ≥1 场
+☑ A1 + B1 + B2 + B3 各 ≥1 场 look jsonl（标签已纠正）
+☑ C1 多目标 ≥1 场 look
 ☑ killaura.md / rotations.md §4 已用 look 统计填表
-☑ provisional AimSnap 写入 docs/detections/aim-provisional.md
-□ 补录带 attack/alignDeg 的 B1、C1（插件已修）
-□ 可选 C2
+☑ provisional AimSnap → docs/detections/aim-provisional.md
+☑ 带 attack 的 B1 Always（2026-11-17，82 attacks）
+☑ 真 C2 only-on-look + attack（2026-11-17，67 attacks）
+□ 带 attack 的 A1 合法（Align 误报基线）— P0
+□ 带 attack 的 C1 max3（AuraSwitch）— P1
+□ 代码：AimSnap 告警 + 与 record 对照日志（见 implementation-plan）
 ```
 
 原始文件放 `replay/captures/`（`*.jsonl` gitignore；`*.md` 可提交）。

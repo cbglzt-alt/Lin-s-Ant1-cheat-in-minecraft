@@ -16,21 +16,25 @@
 ☑ 锁定 Meteor 0.5.8（对齐 Spigot 1.21）
 ☑ KillAura + Rotations（+ BowAimbot / Hitboxes）静态分析卡
 ☑ 与 0.5.9 瞄准类字节码核对（结论：主路径等价）
-☑ 动态录包 A1/B1/B2/B3/C1（2026-11-07；见 batch-2026-11-07.md）
+☑ 动态录包 look 矩阵 A1/B1/B2/B3/C1（2026-11-07）
 ☑ look 向 §4 + AimSnap provisional
-□ 补录带 attack/alignDeg 的 B1/C1 后定 Align
-□ 实现 AimSnap 检测代码（告警-only）
+☑ 补录带 attack 的 B1 + 真 C2（2026-11-17）
+☑ 下一步计划：检测 + 录包对照（见 detections/implementation-plan.md）
+□ 补录带 attack 的 A1（Align 误报线）/ C1（AuraSwitch）
+□ 实现 AimSnap 告警-only + Align 日志骨架（与 /ac record 并行）
 ```
 
 ## 产出
 
 | 文件 | 状态 |
 |---|---|
-| [`killaura.md`](killaura.md) | P0 静+动（look）；Align 待补录 |
+| [`killaura.md`](killaura.md) | P0 静+动（look）；Align 有作弊侧样本、缺合法 attack |
 | [`rotations.md`](rotations.md) | P0 静+动（look） |
-| [`captures.md`](captures.md) / [`batch-2026-11-07.md`](batch-2026-11-07.md) | 矩阵 + 本批汇总 |
+| [`captures.md`](captures.md) / [`batch-2026-11-07.md`](batch-2026-11-07.md) | 矩阵 + 11-07 汇总 |
+| [`../../replay/captures/SUMMARY.md`](../../replay/captures/SUMMARY.md) | 滚动汇总（含 11-17） |
 | [`../detections/aim-provisional.md`](../detections/aim-provisional.md) | AimSnap 候选阈值 |
+| [`../detections/implementation-plan.md`](../detections/implementation-plan.md) | **S3 开工计划（下一步接这里）** |
 | [`bowaimbot.md`](bowaimbot.md) / [`hitboxes.md`](hitboxes.md) | P1 静态 |
 
 模板：[`../TEMPLATE.md`](../TEMPLATE.md)。  
-录包插件：`plugin/`（`/ac record`）。
+插件：`plugin/`（录包已有；检测按 implementation-plan 加）。

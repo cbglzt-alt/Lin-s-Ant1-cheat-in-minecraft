@@ -1,3 +1,34 @@
-# Phase 1: recorder only. Detection thresholds come after captures.md is filled.
+# LinAntiAim — Phase 1 recorder + Aim* alert-only
+# Thresholds: docs/detections/aim-provisional.md
+# Plan: docs/detections/implementation-plan.md
+
 recorder:
   enabled: true
+
+checks:
+  aimsnap:
+    enabled: true
+    window: 40
+    eval_every: 10
+    big_yaw_deg: 20.0
+    big_ratio: 0.12
+    p90_deg: 25.0
+    streak_to_alert: 3
+    decay_no_combat_ms: 5000
+    alert_cooldown_ms: 3000
+    teleport_exempt_ms: 2000
+  align:
+    enabled: true
+    # No medium+ alerts until legit A1 attack baseline exists
+    debug_only: true
+    window: 20
+
+punish:
+  cancel_damage: false
+  kick: false
+
+alerts:
+  jsonl: true
+  broadcast: true
+  # Set true to print AimAttackAlign DEBUG lines to console
+  log_debug: false

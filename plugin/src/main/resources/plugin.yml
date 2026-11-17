@@ -3,7 +3,7 @@ version: ${version}
 main: dev.lin.antiaim.LinAntiAimPlugin
 api-version: "1.21"
 authors: [Lin]
-description: Aim anticheat — Phase 1 packet recorder
+description: Aim anticheat — recorder + AimSnap alert-only
 website: https://github.com/local/Lin-s-Ant1-cheat-in-minecraft
 depend: [packetevents]
 commands:
@@ -14,4 +14,7 @@ commands:
 permissions:
   linantiaim.admin:
     description: Record and admin commands
+    default: op
+  linantiaim.alerts:
+    description: Receive medium+ aim alerts in chat
     default: op

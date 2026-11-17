@@ -1,16 +1,16 @@
 package dev.lin.antiaim.record;
 
+import dev.lin.antiaim.util.AimMath;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.Locale;
 
-final class JsonLine {
+public final class JsonLine {
     private JsonLine() {
     }
 
-    static String sessionStart(CaptureService.ActiveCapture c, Player player) {
+    public static String sessionStart(CaptureService.ActiveCapture c, Player player) {
         return obj(
                 kv("type", quote("session")),
                 kv("t", Long.toString(System.currentTimeMillis())),
@@ -22,7 +22,7 @@ final class JsonLine {
         );
     }
 
-    static String sessionEnd(CaptureService.ActiveCapture c, String reason) {
+    public static String sessionEnd(CaptureService.ActiveCapture c, String reason) {
         return obj(
                 kv("type", quote("session_end")),
                 kv("t", Long.toString(System.currentTimeMillis())),
@@ -35,7 +35,7 @@ final class JsonLine {
         );
     }
 
-    static String look(CaptureService.ActiveCapture c, double x, double y, double z,
+    public static String look(CaptureService.ActiveCapture c, double x, double y, double z,
                        float yaw, float pitch, boolean onGround, boolean hasPos, boolean hasRot) {
         StringBuilder sb = new StringBuilder(160);
         sb.append('{');
@@ -59,7 +59,7 @@ final class JsonLine {
         return sb.toString();
     }
 
-    static String attack(CaptureService.ActiveCapture c, Player attacker, Entity target,
+    public static String attack(CaptureService.ActiveCapture c, Player attacker, Entity target,
                          float yaw, float pitch) {
         double align = alignDeg(attacker, target, yaw, pitch);
         StringBuilder sb = new StringBuilder(220);
@@ -78,7 +78,7 @@ final class JsonLine {
         return sb.toString();
     }
 
-    static String swing() {
+    public static String swing() {
         return obj(
                 kv("type", quote("swing")),
                 kv("t", Long.toString(System.currentTimeMillis()))
@@ -87,36 +87,11 @@ final class JsonLine {
 
     /** Angle between look vector and eye→body-center vector (degrees). */
     static double alignDeg(Player attacker, Entity target, float yaw, float pitch) {
-        Vector look = direction(yaw, pitch);
-        double bodyY = target.getLocation().getY() + target.getHeight() / 2.0;
-        Vector to = new Vector(
-                target.getLocation().getX() - attacker.getEyeLocation().getX(),
-                bodyY - attacker.getEyeLocation().getY(),
-                target.getLocation().getZ() - attacker.getEyeLocation().getZ()
-        );
-        if (to.lengthSquared() < 1.0e-8 || look.lengthSquared() < 1.0e-8) {
-            return 180.0;
-        }
-        to.normalize();
-        look.normalize();
-        double dot = Math.max(-1.0, Math.min(1.0, look.dot(to)));
-        return Math.toDegrees(Math.acos(dot));
-    }
-
-    private static Vector direction(float yaw, float pitch) {
-        double yawRad = Math.toRadians(yaw);
-        double pitchRad = Math.toRadians(pitch);
-        double x = -Math.sin(yawRad) * Math.cos(pitchRad);
-        double y = -Math.sin(pitchRad);
-        double z = Math.cos(yawRad) * Math.cos(pitchRad);
-        return new Vector(x, y, z);
+        return AimMath.alignDeg(attacker, target, yaw, pitch);
     }
 
     private static float deltaYaw(float from, float to) {
-        float d = to - from;
-        while (d > 180f) d -= 360f;
-        while (d < -180f) d += 360f;
-        return d;
+        return AimMath.deltaYaw(from, to);
     }
 
     private static String obj(String... parts) {
