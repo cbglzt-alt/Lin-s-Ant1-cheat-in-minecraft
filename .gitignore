@@ -55,3 +55,6 @@ out/
 
 # macOS
 .DS_Store
+
+# Gradle output
+plugin/bin/
