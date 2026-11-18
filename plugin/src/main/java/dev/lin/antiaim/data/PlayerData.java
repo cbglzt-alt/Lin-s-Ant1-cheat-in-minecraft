@@ -36,6 +36,7 @@ public final class PlayerData {
     private long lastAttackDedupMs;
     private int lastAttackDedupTarget = Integer.MIN_VALUE;
     private long lastWarnMs;
+    private String blockedBy = "";
 
     private int totalVl;
     private long lastVlMs;
@@ -269,6 +270,19 @@ public final class PlayerData {
 
     public void markWarn(long t) {
         lastWarnMs = t;
+    }
+
+    /** Why a punishment tier is not acting (bypass / tier disabled). */
+    public String blockedBy() {
+        return blockedBy;
+    }
+
+    public void noteBlockedByBypass(String why) {
+        this.blockedBy = why;
+    }
+
+    public void clearBlocked() {
+        this.blockedBy = "";
     }
 
     public boolean kicked() {

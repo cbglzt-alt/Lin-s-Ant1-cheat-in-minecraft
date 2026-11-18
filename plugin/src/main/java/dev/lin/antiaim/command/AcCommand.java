@@ -138,7 +138,9 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
                 + " snap=" + data.aimSnapVl()
                 + " align=" + data.alignVl()
                 + " aura=" + data.auraVl()
-                + (data.damageCancelled(System.currentTimeMillis()) ? " [damage-cancel ACTIVE]" : ""));
+                + (data.damageCancelled(System.currentTimeMillis()) ? " [damage-cancel ACTIVE]" : "")
+                + (data.blockedBy().isEmpty() ? "" : " [blocked: " + data.blockedBy() + "]")
+                + (data.kicked() ? " [kicked]" : ""));
     }
 
     private static void usage(CommandSender s) {

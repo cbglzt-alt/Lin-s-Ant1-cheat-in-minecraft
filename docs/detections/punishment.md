@@ -27,9 +27,18 @@
 
 - 命中权重：`AimSnap +1`、`AimAttackAlign +2`、`AuraSwitch +2`
 - 每秒衰减 1，停手自然回落
-- **持久化**：`plugins/LinAntiAim/vl.yml`，退出/重启不清零（防重进服洗分）
+- **持久化**：`plugins/LinAntiAim/vl.yml`；进服恢复时会**封顶到 kick−1**，避免一上线就被踢
 - 每 30s 落盘一次，关服也会保存
-- `linantiaim.bypass` 权限：不取消伤害、不踢（仍记 VL 和告警）
+- 每秒心跳会**重新评估档位**，所以 `/ac punish kick on` 立刻对已达阈值的玩家生效
+
+## 2.1 谁能豁免
+
+`linantiaim.bypass` 权限：不取消伤害、不踢（仍记 VL 和告警）。
+
+> **OP 默认不算豁免**（`punish.bypass_for_ops: false`）。Bukkit 会给 OP 所有权限，
+> 早期版本因此让测试号静默豁免。现在只有**显式授予** `linantiaim.bypass` 才豁免。
+
+用 `/ac vl` 看 `[blocked: bypass | cancel-disabled | kick-disabled]` 可判断卡在哪一档。
 
 ## 3. 运行时命令
 

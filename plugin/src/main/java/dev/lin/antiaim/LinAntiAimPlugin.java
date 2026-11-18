@@ -53,12 +53,13 @@ public final class LinAntiAimPlugin extends JavaPlugin {
                 new PlayerConnectionListener(this, playerDataService, punishmentService), this);
 
         // decay once per second; persist every 30s so a crash loses little
+        punishmentService.bindDataLookup(playerDataService::get);
         heartbeatTask = getServer().getScheduler().runTaskTimer(this, new Runnable() {
             private int ticks;
 
             @Override
             public void run() {
-                punishmentService.tickAll(playerDataService.all());
+                punishmentService.tickOnline(new java.util.ArrayList<>(getServer().getOnlinePlayers()));
                 if (++ticks % 30 == 0) {
                     punishmentService.persistAll(playerDataService.all());
                 }

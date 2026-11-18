@@ -40,6 +40,7 @@ public final class PunishmentService {
     private final long actionCooldownMs;
     private final String kickMessage;
     private final String bypassPermission;
+    private final boolean bypassOps;
 
     private boolean cancelDamageEnabled;
     private boolean kickEnabled;
@@ -64,6 +65,7 @@ public final class PunishmentService {
         this.kickMessage = config.getString("punish.kick_message",
                 "Unfair advantage detected ({check}, vl={vl}).");
         this.bypassPermission = config.getString("punish.bypass_permission", "linantiaim.bypass");
+        this.bypassOps = config.getBoolean("punish.bypass_for_ops", false);
     }
 
     public boolean enabled() {
@@ -100,38 +102,90 @@ public final class PunishmentService {
                 + " kick=" + kickEnabled + "@" + kickAtVl;
     }
 
-    /** Called on join: restore persisted VL. */
+    public String bypassPermission() {
+        return bypassPermission;
+    }
+
+    /**
+     * Bukkit gives operators every permission, so an OP tester silently bypassed
+     * punishment. Bypass only counts when the permission is explicitly granted.
+     */
+    public boolean isBypassed(Player player) {
+        if (!player.hasPermission(bypassPermission)) {
+            return false;
+        }
+        if (player.isOp() && !bypassOps) {
+            return player.isPermissionSet(bypassPermission);
+        }
+        return true;
+    }
+
+    /** Called on join: restore persisted VL, but never high enough to kick on sight. */
     public void restore(PlayerData data) {
         int stored = store.get(data.uuid());
-        if (stored > 0) {
-            data.setTotalVl(stored);
+        if (stored <= 0) {
+            return;
+        }
+        int capped = Math.min(stored, Math.max(0, kickAtVl - 1));
+        data.setTotalVl(capped);
+        if (stored >= kickAtVl) {
+            log.info("restored vl for " + data.name() + ": " + stored + " capped to " + capped
+                    + " (no instant kick on join)");
         }
     }
 
     public void addVl(Player player, PlayerData data, int amount, String check, String reason) {
-        if (!enabled || amount <= 0 || data.kicked()) {
+        if (!enabled || amount <= 0) {
             return;
         }
         decay(data);
         data.addTotalVl(amount);
+        store.put(data.uuid(), data.totalVl());
+        evaluate(player, data, check, reason);
+    }
+
+    /**
+     * Applies the tier matching the current VL. Safe to call repeatedly
+     * (from new violations and from the 1s heartbeat) so enabling a tier at
+     * runtime takes effect immediately.
+     */
+    public void evaluate(Player player, PlayerData data, String check, String reason) {
+        if (!enabled || data.kicked()) {
+            return;
+        }
         int vl = data.totalVl();
-        store.put(data.uuid(), vl);
-
-        if (player.hasPermission(bypassPermission)) {
+        if (vl <= 0) {
             return;
         }
 
-        if (vl >= kickAtVl && kickEnabled) {
-            kick(player, data, check, vl, reason);
+        if (isBypassed(player)) {
+            if (vl >= cancelAtVl) {
+                data.noteBlockedByBypass("bypass");
+            }
             return;
         }
-        if (vl >= kickAtVl - warnMarginVl && kickEnabled) {
-            warn(player, data, check, vl, "final warning: reaching vl " + kickAtVl + " will disconnect you");
+        data.clearBlocked();
+        if (vl >= kickAtVl) {
+            if (kickEnabled) {
+                kick(player, data, check, vl, reason);
+            } else {
+                data.noteBlockedByBypass("kick-disabled");
+            }
+            return;
         }
-        if (vl >= cancelAtVl && cancelDamageEnabled) {
-            applyCancelDamage(player, data, check, vl, reason);
-        } else if (vl >= cancelAtVl) {
-            warn(player, data, check, vl, "suspicious aim detected (vl " + vl + ")");
+        if (vl >= kickAtVl - warnMarginVl) {
+            if (kickEnabled) {
+                warn(player, data, check, vl,
+                        "final warning: reaching vl " + kickAtVl + " will disconnect you");
+            }
+        }
+        if (vl >= cancelAtVl) {
+            if (cancelDamageEnabled) {
+                applyCancelDamage(player, data, check, vl, reason);
+            } else {
+                data.noteBlockedByBypass("cancel-disabled");
+                warn(player, data, check, vl, "suspicious aim detected (vl " + vl + ")");
+            }
         }
     }
 
@@ -178,8 +232,6 @@ public final class PunishmentService {
         if (data.kicked()) {
             return;
         }
-        data.markKicked();
-        store.put(data.uuid(), vl);
         Map<String, Object> fields = new LinkedHashMap<>();
         fields.put("action", "KICK");
         fields.put("vl", vl);
@@ -188,10 +240,12 @@ public final class PunishmentService {
         alerts.emit(player, check, AlertLevel.HIGH,
                 "vl=" + vl + " → kick (" + reason + ")", fields);
 
-        if (player.hasPermission(bypassPermission)) {
+        if (isBypassed(player)) {
+            data.noteBlockedByBypass("bypass");
             log.info("punish bypassed for " + player.getName() + " (has " + bypassPermission + ")");
             return;
-        }
+        }        data.markKicked();
+        store.put(data.uuid(), vl);
         String msg = kickMessage.replace("{check}", check)
                 .replace("{vl}", Integer.toString(vl));
         String colored = ChatColor.translateAlternateColorCodes('&', msg);
@@ -225,6 +279,27 @@ public final class PunishmentService {
         for (PlayerData d : all) {
             decay(d);
         }
+    }
+
+    /** Heartbeat: decay + re-evaluate tiers so runtime toggles apply immediately. */
+    public void tickOnline(java.util.List<Player> online) {
+        for (Player player : online) {
+            if (!player.isOnline()) {
+                continue;
+            }
+            PlayerData data = dataLookup.apply(player);
+            if (data == null) {
+                continue;
+            }
+            decay(data);
+            evaluate(player, data, "Punish", "vl=" + data.totalVl());
+        }
+    }
+
+    private java.util.function.Function<Player, PlayerData> dataLookup = p -> null;
+
+    public void bindDataLookup(java.util.function.Function<Player, PlayerData> lookup) {
+        this.dataLookup = lookup;
     }
 
     public void persistAll(Iterable<PlayerData> all) {

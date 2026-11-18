@@ -1,4 +1,4 @@
-# LinAntiAim 0.4.0 — recorder + Aim* checks + tiered punishment
+# LinAntiAim 0.4.1 — recorder + Aim* checks + tiered punishment
 # Thresholds from A1/B1/B2/C1 captures — docs/detections/aim-provisional.md
 # Punishment tiers — docs/detections/punishment.md
 
@@ -57,6 +57,8 @@ punish:
   kick: false
   kick_at_vl: 30
   warn_before_kick_vl: 4
+  # OPs get every permission; keep this false so a test OP is still punished
+  bypass_for_ops: false
   kick_message: "&cUnfair advantage detected &7({check}, vl={vl})"
   bypass_permission: linantiaim.bypass
   action_cooldown_ms: 4000

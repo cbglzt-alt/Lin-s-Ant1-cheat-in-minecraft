@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "dev.lin"
-version = "0.4.0-SNAPSHOT"
+version = "0.4.1-SNAPSHOT"
 description = "Aim-focused anticheat recorder / checks (Phase 1)"
 
 java {
