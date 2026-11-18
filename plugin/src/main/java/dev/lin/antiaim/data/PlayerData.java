@@ -35,6 +35,7 @@ public final class PlayerData {
     private long exemptUntilMs;
     private long lastAttackDedupMs;
     private int lastAttackDedupTarget = Integer.MIN_VALUE;
+    private long lastWarnMs;
 
     private int totalVl;
     private long lastVlMs;
@@ -260,6 +261,14 @@ public final class PlayerData {
 
     public void markPunishAction(long t) {
         lastPunishActionMs = t;
+    }
+
+    public long lastWarnMs() {
+        return lastWarnMs;
+    }
+
+    public void markWarn(long t) {
+        lastWarnMs = t;
     }
 
     public boolean kicked() {

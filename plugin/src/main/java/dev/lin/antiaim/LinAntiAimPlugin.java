@@ -12,6 +12,7 @@ import dev.lin.antiaim.listen.CombatPacketListener;
 import dev.lin.antiaim.listen.PlayerConnectionListener;
 import dev.lin.antiaim.listen.PunishDamageListener;
 import dev.lin.antiaim.punish.PunishmentService;
+import dev.lin.antiaim.punish.VlStore;
 import dev.lin.antiaim.record.AttackProbe;
 import dev.lin.antiaim.record.CaptureService;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,7 +26,7 @@ public final class LinAntiAimPlugin extends JavaPlugin {
     private CaptureService captureService;
     private PlayerDataService playerDataService;
     private PunishmentService punishmentService;
-    private BukkitTask vlDecayTask;
+    private BukkitTask heartbeatTask;
 
     @Override
     public void onEnable() {
@@ -34,7 +35,8 @@ public final class LinAntiAimPlugin extends JavaPlugin {
         this.playerDataService = new PlayerDataService();
 
         AlertService alerts = new AlertService(this, captureService);
-        this.punishmentService = new PunishmentService(this, alerts, getConfig());
+        VlStore vlStore = new VlStore(this);
+        this.punishmentService = new PunishmentService(this, alerts, vlStore, getConfig());
         AimSnapCheck aimSnap = new AimSnapCheck(alerts, punishmentService, getConfig());
         AimAttackAlignCheck align = new AimAttackAlignCheck(alerts, punishmentService, getConfig());
         AuraSwitchCheck auraSwitch = new AuraSwitchCheck(alerts, punishmentService, getConfig());
@@ -48,10 +50,20 @@ public final class LinAntiAimPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new PunishDamageListener(playerDataService, punishmentService), this);
         getServer().getPluginManager().registerEvents(
-                new PlayerConnectionListener(this, playerDataService), this);
+                new PlayerConnectionListener(this, playerDataService, punishmentService), this);
 
-        vlDecayTask = getServer().getScheduler().runTaskTimer(this,
-                () -> punishmentService.tickAll(playerDataService.all()), 20L, 20L);
+        // decay once per second; persist every 30s so a crash loses little
+        heartbeatTask = getServer().getScheduler().runTaskTimer(this, new Runnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                punishmentService.tickAll(playerDataService.all());
+                if (++ticks % 30 == 0) {
+                    punishmentService.persistAll(playerDataService.all());
+                }
+            }
+        }, 20L, 20L);
 
         var ac = getCommand("ac");
         if (ac != null) {
@@ -63,18 +75,19 @@ public final class LinAntiAimPlugin extends JavaPlugin {
         getLogger().info("LinAntiAim ready: recorder=" + recorderEnabled
                 + " AimSnap=" + aimSnap.enabled()
                 + " Align=" + align.enabled()
-                + " AuraSwitch=" + auraSwitch.enabled()
-                + " punish.enabled=" + punishmentService.enabled()
-                + " cancelDamage=" + punishmentService.damageCancelEnabled()
-                + " kick=" + punishmentService.kickEnabled());
-        getLogger().info("Tiers: alert vl>0 | cancel@" + punishmentService.cancelAtVl()
-                + " | kick@" + punishmentService.kickAtVl());
+                + " AuraSwitch=" + auraSwitch.enabled());
+        getLogger().info(punishmentService.statusLine()
+                + " | tiers: cancel@" + punishmentService.cancelAtVl()
+                + " kick@" + punishmentService.kickAtVl());
     }
 
     @Override
     public void onDisable() {
-        if (vlDecayTask != null) {
-            vlDecayTask.cancel();
+        if (heartbeatTask != null) {
+            heartbeatTask.cancel();
+        }
+        if (punishmentService != null && playerDataService != null) {
+            punishmentService.persistAll(playerDataService.all());
         }
         if (captureService != null) {
             captureService.stopAll("plugin-disable");

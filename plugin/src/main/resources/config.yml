@@ -1,4 +1,4 @@
-# LinAntiAim 0.3.1 — recorder + Aim* checks + tiered punishment
+# LinAntiAim 0.4.0 — recorder + Aim* checks + tiered punishment
 # Thresholds from A1/B1/B2/C1 captures — docs/detections/aim-provisional.md
 # Punishment tiers — docs/detections/punishment.md
 
@@ -42,18 +42,22 @@ checks:
     alert_cooldown_ms: 3000
     decay_ms: 8000
 
-# Accumulated VL drives escalation. Decays 1/s while quiet.
+# Accumulated VL drives escalation. Decays 1/s while quiet; persisted in vl.yml.
 punish:
   enabled: true
   vl_decay_per_sec: 1
-  # Tier 2: cancel outgoing damage for N seconds
+  # Tier 2: cancel outgoing damage (duration grows with VL)
   cancel_damage: false
   cancel_damage_at_vl: 12
   cancel_damage_seconds: 5
-  # Tier 3: kick
+  cancel_damage_step_seconds: 2
+  cancel_damage_step_vl: 6
+  cancel_damage_max_seconds: 20
+  # Tier 3: kick (warn shortly before)
   kick: false
-  kick_at_vl: 24
-  kick_message: "Unfair advantage detected ({check}, vl={vl})."
+  kick_at_vl: 30
+  warn_before_kick_vl: 4
+  kick_message: "&cUnfair advantage detected &7({check}, vl={vl})"
   bypass_permission: linantiaim.bypass
   action_cooldown_ms: 4000
 

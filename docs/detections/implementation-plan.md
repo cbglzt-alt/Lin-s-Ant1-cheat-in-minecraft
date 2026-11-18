@@ -99,9 +99,10 @@ PacketEvents / Bukkit
 ☑ AimSnap 告警 + VL
 ☑ AimAttackAlign 告警（A1 基线已补齐：mean≈12° vs B1≈4°）
 ☑ AuraSwitch 告警（横扫安全：同簇 ≥3 目标且存在 ≥60° 视野外命中）
-☑ 分级处罚：告警 → 取消伤害(12) → 踢出(24)，默认后两档关
+☑ 分级处罚：警告 → 取消伤害(VL≥12，时长随 VL 递增) → 踢出(VL≥30，前有警告)
+☑ VL 持久化 vl.yml + 运行时开关 /ac punish
 ☑ 攻击采集三源：packet / damage(含取消) / swing_ray
-☑ 部署 smoke：A1 安静；B1/C2 出 Align；B2 出 Snap；C1 出 Aura
+☑ 部署 smoke：A1 安静；B1/C2 出 Align；B2 出 Snap；C1 出 Aura；横扫不误报
 □ 线上灰度：先观察 VL 曲线，再开 cancel_damage，最后 kick
 ```
 

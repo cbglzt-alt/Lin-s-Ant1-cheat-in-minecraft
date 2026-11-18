@@ -9,16 +9,30 @@
 
 ```
 /ac record start <label>   /ac record stop   /ac record status
-/ac vl        # 查看累计 VL
-/ac reset     # 清零（测试）
+/ac vl [player]      # 累计 VL + 各检测分量
+/ac punish cancel on|off   # 运行时开关取消伤害
+/ac punish kick on|off     # 运行时开关踢人
+/ac reset            # 清零（测试）
+/ac status           # 汇总
 ```
+
+## 处罚分档
+
+| VL | 动作 |
+|---:|---|
+| 0–11 | 仅告警/日志 |
+| ≥12 | 取消伤害 5s 起，每 +6 VL 加 2s（上限 20s） |
+| ≥26 | 踢出前警告 |
+| ≥30 | 踢出 |
+
+VL 每秒衰减 1，持久化在 `plugins/LinAntiAim/vl.yml`。详见 [`punishment.md`](../docs/detections/punishment.md)。
 
 ## 构建
 
 ```bash
 cd plugin
 ./gradlew jar
-# 产物: build/libs/LinAntiAim-0.3.0-SNAPSHOT.jar
+# 产物: build/libs/LinAntiAim-0.4.0-SNAPSHOT.jar
 ```
 
 ## 部署（简幻欢）

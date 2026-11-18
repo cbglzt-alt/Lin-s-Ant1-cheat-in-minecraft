@@ -50,11 +50,21 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args[0].equalsIgnoreCase("vl")) {
-            showVl(player, player.getUniqueId());
+            if (args.length >= 2 && player.hasPermission("linantiaim.admin")) {
+                var target = Bukkit.getPlayerExact(args[1]);
+                if (target == null) {
+                    player.sendMessage("Player not online: " + args[1]);
+                    return true;
+                }
+                showVl(player, target.getUniqueId(), target.getName());
+                return true;
+            }
+            showVl(player, player.getUniqueId(), player.getName());
             return true;
         }
         if (args[0].equalsIgnoreCase("status")) {
-            showVl(player, player.getUniqueId());
+            player.sendMessage(punishment.statusLine());
+            showVl(player, player.getUniqueId(), player.getName());
             player.sendMessage(captures.statusLine(player));
             return true;
         }
@@ -62,6 +72,23 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
             PlayerData data = players.get(player);
             punishment.reset(data);
             player.sendMessage("VL reset.");
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("punish")) {
+            if (args.length < 2) {
+                player.sendMessage("Usage: /ac punish <cancel|kick> <on|off>");
+                return true;
+            }
+            boolean on = args.length >= 3 && args[2].equalsIgnoreCase("on");
+            switch (args[1].toLowerCase(Locale.ROOT)) {
+                case "cancel" -> punishment.setCancelDamage(on);
+                case "kick" -> punishment.setKick(on);
+                default -> {
+                    player.sendMessage("Usage: /ac punish <cancel|kick> <on|off>");
+                    return true;
+                }
+            }
+            player.sendMessage(punishment.statusLine());
             return true;
         }
         if (!args[0].equalsIgnoreCase("record")) {
@@ -100,13 +127,13 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private void showVl(Player viewer, java.util.UUID target) {
+    private void showVl(Player viewer, java.util.UUID target, String name) {
         PlayerData data = players.get(target);
         if (data == null) {
-            viewer.sendMessage("VL: no data.");
+            viewer.sendMessage("VL: no data for " + name + ".");
             return;
         }
-        viewer.sendMessage("VL total=" + data.totalVl()
+        viewer.sendMessage("VL " + name + " total=" + data.totalVl()
                 + " (cancel@" + punishment.cancelAtVl() + ", kick@" + punishment.kickAtVl() + ")"
                 + " snap=" + data.aimSnapVl()
                 + " align=" + data.alignVl()
@@ -115,16 +142,30 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
     }
 
     private static void usage(CommandSender s) {
-        s.sendMessage("Usage: /ac record <start|stop|status> [label] | /ac vl | /ac reset");
+        s.sendMessage("Usage: /ac record <start|stop|status> [label]"
+                + " | /ac vl [player] | /ac reset | /ac status | /ac punish <cancel|kick> <on|off>");
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("record", "vl", "status", "reset"), args[0]);
+            return filter(List.of("record", "vl", "status", "reset", "punish"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("record")) {
             return filter(List.of("start", "stop", "status"), args[1]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("punish")) {
+            return filter(List.of("cancel", "kick"), args[1]);
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("punish")) {
+            return filter(List.of("on", "off"), args[2]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("vl")) {
+            List<String> names = new ArrayList<>();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                names.add(p.getName());
+            }
+            return filter(names, args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("record") && args[1].equalsIgnoreCase("start")) {
             return filter(LABELS, args[2]);
