@@ -103,7 +103,8 @@ PacketEvents / Bukkit
 ☑ VL 持久化 vl.yml + 运行时开关 /ac punish
 ☑ 攻击采集三源：packet / damage(含取消) / swing_ray
 ☑ 部署 smoke：A1 安静；B1/C2 出 Align；B2 出 Snap；C1 出 Aura；横扫不误报
-□ 线上灰度：先观察 VL 曲线，再开 cancel_damage，最后 kick
+☑ 0.4.2 实测：VL 正常累积，cancel@12 生效，kick@30 生效（2026-11-18 简幻欢）
+□ 线上灰度：正式服先只告警观察 VL 曲线，再开 cancel_damage，最后 kick
 ```
 
 ## 7. 下一迭代候选

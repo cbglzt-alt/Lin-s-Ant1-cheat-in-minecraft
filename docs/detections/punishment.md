@@ -85,10 +85,13 @@
 ## 7. 测试清单
 
 ```
-□ 合法近战 2 分钟：/ac vl 应 < 12，无 cancel/kick
-□ B1 Always：vl 稳定增长，跨 12 后出现 cancel 提示
-□ B2 OnHit：AimSnap 加分，vl 上涨
-□ C1 max3：AuraSwitch 加分
-□ 重进服：vl 不清零（看 vl.yml）
-□ bypass 账号：有告警但不 cancel/不 kick
+☑ 合法近战 2 分钟：/ac vl 应 < 12，无 cancel/kick
+☑ B1 Always：vl 稳定增长，跨 12 后出现 cancel 提示
+☑ B2 OnHit：AimSnap 加分，vl 上涨
+☑ C1 max3：AuraSwitch 加分
+☑ 横扫多目标：不再误报 AuraSwitch
+☑ 重进服：vl 不清零（看 vl.yml）
+☑ 达到 kick 阈值：开启 kick 后被踢出
 ```
+
+> 0.4.2 于 2026-11-18 在简幻欢实测通过（含踢出）。
