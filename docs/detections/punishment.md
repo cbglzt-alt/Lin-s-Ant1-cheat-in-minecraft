@@ -26,10 +26,14 @@
 ## 2. VL 规则
 
 - 命中权重：`AimSnap +1`、`AimAttackAlign +2`、`AuraSwitch +2`
-- 每秒衰减 1，停手自然回落
-- **持久化**：`plugins/LinAntiAim/vl.yml`；进服恢复时会**封顶到 kick−1**，避免一上线就被踢
+- **衰减前有 6 秒宽限期**（`vl_decay_after_idle_ms`）：持续作弊时 VL 只涨不跌
+- 停手 6 秒后每秒 −1；上限 100
+- **持久化**：`plugins/LinAntiAim/vl.yml`；进服恢复时封顶到 kick−1，避免上线即被踢
 - 每 30s 落盘一次，关服也会保存
-- 每秒心跳会**重新评估档位**，所以 `/ac punish kick on` 立刻对已达阈值的玩家生效
+- 每秒心跳重新评估档位，`/ac punish kick on` 立即可生效
+
+> 0.4.1 之前是**每秒无条件 −1**，而 AuraSwitch 平均 3 秒才 +2（≈0.67/s），
+> 所以 `total` 永远停在 0——截图里 `aura=57 / total=0` 就是这个 bug。
 
 ## 2.1 谁能豁免
 

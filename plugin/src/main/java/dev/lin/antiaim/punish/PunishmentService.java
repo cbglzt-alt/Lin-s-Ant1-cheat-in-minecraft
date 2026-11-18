@@ -30,6 +30,7 @@ public final class PunishmentService {
 
     private final boolean enabled;
     private final int decayPerSec;
+    private final long decayAfterIdleMs;
     private final int cancelAtVl;
     private final long cancelBaseMs;
     private final long cancelStepMs;
@@ -52,6 +53,7 @@ public final class PunishmentService {
         this.log = plugin.getLogger();
         this.enabled = config.getBoolean("punish.enabled", true);
         this.decayPerSec = Math.max(0, config.getInt("punish.vl_decay_per_sec", 1));
+        this.decayAfterIdleMs = config.getLong("punish.vl_decay_after_idle_ms", 6000L);
         this.cancelAtVl = config.getInt("punish.cancel_damage_at_vl", 12);
         this.cancelBaseMs = config.getLong("punish.cancel_damage_seconds", 5L) * 1000L;
         this.cancelStepMs = config.getLong("punish.cancel_damage_step_seconds", 2L) * 1000L;
@@ -99,7 +101,8 @@ public final class PunishmentService {
     public String statusLine() {
         return "punish enabled=" + enabled
                 + " cancelDamage=" + cancelDamageEnabled + "@" + cancelAtVl
-                + " kick=" + kickEnabled + "@" + kickAtVl;
+                + " kick=" + kickEnabled + "@" + kickAtVl
+                + " decay=" + decayPerSec + "/s after " + (decayAfterIdleMs / 1000) + "s idle";
     }
 
     public String bypassPermission() {
@@ -257,19 +260,22 @@ public final class PunishmentService {
         }
     }
 
-    /** Lazy decay; also persists so a restart does not resurrect old VL. */
+    /**
+     * VL only decays after the player has been violation-free for a grace period.
+     * Decaying every second unconditionally made scores impossible to accumulate:
+     * AuraSwitch awards +2 per 3s (≈0.67/s) while old decay removed 1/s.
+     * Called once per second from the heartbeat, so one step == one second.
+     */
     public void decay(PlayerData data) {
         if (!enabled || decayPerSec <= 0) {
             return;
         }
         long now = System.currentTimeMillis();
-        long last = data.lastVlMs();
-        if (last <= 0 || now - last < 1000L) {
+        if (now - data.lastViolationMs() < decayAfterIdleMs) {
             return;
         }
-        long secs = (now - last) / 1000L;
         int before = data.totalVl();
-        data.setTotalVl(Math.max(0, before - (int) (secs * decayPerSec)));
+        data.decayTotalVl(decayPerSec);
         if (data.totalVl() != before) {
             store.put(data.uuid(), data.totalVl());
         }

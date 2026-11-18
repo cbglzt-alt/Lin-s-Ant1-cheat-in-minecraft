@@ -46,6 +46,8 @@ checks:
 punish:
   enabled: true
   vl_decay_per_sec: 1
+  # Grace period before VL starts decaying (keeps active cheating accumulating)
+  vl_decay_after_idle_ms: 6000
   # Tier 2: cancel outgoing damage (duration grows with VL)
   cancel_damage: false
   cancel_damage_at_vl: 12

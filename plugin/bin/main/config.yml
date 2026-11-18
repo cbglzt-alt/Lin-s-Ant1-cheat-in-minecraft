@@ -1,0 +1,71 @@
+# LinAntiAim 0.4.1 — recorder + Aim* checks + tiered punishment
+# Thresholds from A1/B1/B2/C1 captures — docs/detections/aim-provisional.md
+# Punishment tiers — docs/detections/punishment.md
+
+recorder:
+  enabled: true
+
+checks:
+  aimsnap:
+    enabled: true
+    window: 40
+    eval_every: 10
+    big_yaw_deg: 20.0
+    big_ratio: 0.12
+    p90_deg: 25.0
+    streak_to_alert: 3
+    decay_no_combat_ms: 5000
+    alert_cooldown_ms: 3000
+    teleport_exempt_ms: 2000
+    # Only score snaps shortly after an entity attack (reduces mining/freelook FP)
+    require_recent_attack_ms: 3000
+  align:
+    enabled: true
+    debug_only: false
+    window: 20
+    min_samples: 10
+    # A1 mean10≈11.9°; B1 mean10≈4.2° → flag when mean stays ≤8°
+    mean_max_deg: 8.0
+    tight_deg: 8.0
+    tight_min_count: 6
+    streak_to_alert: 2
+    alert_cooldown_ms: 3000
+    decay_ms: 8000
+  aura_switch:
+    enabled: true
+    # One swing hitting several mobs is legit (sweep). Aura shows a target far
+    # outside the look direction in the same cluster.
+    cluster_ms: 120
+    min_distinct: 3
+    wild_align_deg: 60.0
+    streak_to_alert: 2
+    alert_cooldown_ms: 3000
+    decay_ms: 8000
+
+# Accumulated VL drives escalation. Decays 1/s while quiet; persisted in vl.yml.
+punish:
+  enabled: true
+  vl_decay_per_sec: 1
+  # Grace period before VL starts decaying (keeps active cheating accumulating)
+  vl_decay_after_idle_ms: 6000
+  # Tier 2: cancel outgoing damage (duration grows with VL)
+  cancel_damage: false
+  cancel_damage_at_vl: 12
+  cancel_damage_seconds: 5
+  cancel_damage_step_seconds: 2
+  cancel_damage_step_vl: 6
+  cancel_damage_max_seconds: 20
+  # Tier 3: kick (warn shortly before)
+  kick: false
+  kick_at_vl: 30
+  warn_before_kick_vl: 4
+  # OPs get every permission; keep this false so a test OP is still punished
+  bypass_for_ops: false
+  kick_message: "&cUnfair advantage detected &7({check}, vl={vl})"
+  bypass_permission: linantiaim.bypass
+  action_cooldown_ms: 4000
+
+alerts:
+  jsonl: true
+  broadcast: true
+  log_debug: false

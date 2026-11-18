@@ -40,6 +40,9 @@ public final class PlayerData {
 
     private int totalVl;
     private long lastVlMs;
+    private long lastViolationMs;
+
+    private static final int VL_CAP = 100;
     private long damageCancelUntilMs;
     private long lastPunishActionMs;
     private boolean kicked;
@@ -236,12 +239,23 @@ public final class PlayerData {
     }
 
     public void addTotalVl(int delta) {
-        totalVl = Math.max(0, totalVl + delta);
-        lastVlMs = System.currentTimeMillis();
+        totalVl = Math.max(0, Math.min(VL_CAP, totalVl + delta));
+        long now = System.currentTimeMillis();
+        lastVlMs = now;
+        lastViolationMs = now;
+    }
+
+    /** Called by the 1s heartbeat after the idle grace period. */
+    public void decayTotalVl(int amount) {
+        totalVl = Math.max(0, totalVl - amount);
     }
 
     public long lastVlMs() {
         return lastVlMs;
+    }
+
+    public long lastViolationMs() {
+        return lastViolationMs;
     }
 
     public long damageCancelUntilMs() {
