@@ -161,18 +161,23 @@ public final class CaptureService {
         }
 
         public synchronized void writeAttack(Player attacker, org.bukkit.entity.Entity target,
-                                             float yaw, float pitch) throws IOException {
+                                             float yaw, float pitch, boolean damaged, String source)
+                throws IOException {
             lastYaw = yaw;
             lastPitch = pitch;
             hasLook = true;
-            writeRaw(JsonLine.attack(this, attacker, target, yaw, pitch));
+            writeRaw(JsonLine.attack(this, attacker, target, yaw, pitch, damaged, source));
             attackCount++;
         }
 
-        public synchronized void writeAttackUnknown(long t, float yaw, float pitch, int targetId) throws IOException {
+        public synchronized void writeAttackUnknown(long t, float yaw, float pitch, int targetId,
+                                                    boolean damaged, String source) throws IOException {
             writeRaw("{\"type\":\"attack\",\"t\":" + t
                     + ",\"yaw\":" + yaw + ",\"pitch\":" + pitch
-                    + ",\"targetId\":" + targetId + ",\"targetType\":\"UNKNOWN\",\"alignDeg\":-1}");
+                    + ",\"targetId\":" + targetId
+                    + ",\"targetType\":\"UNKNOWN\",\"alignDeg\":-1"
+                    + ",\"damaged\":" + damaged
+                    + ",\"source\":\"" + source + "\"}");
             attackCount++;
         }
 

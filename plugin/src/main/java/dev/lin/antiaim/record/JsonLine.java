@@ -60,9 +60,9 @@ public final class JsonLine {
     }
 
     public static String attack(CaptureService.ActiveCapture c, Player attacker, Entity target,
-                         float yaw, float pitch) {
+                         float yaw, float pitch, boolean damaged, String source) {
         double align = alignDeg(attacker, target, yaw, pitch);
-        StringBuilder sb = new StringBuilder(220);
+        StringBuilder sb = new StringBuilder(280);
         sb.append('{');
         append(sb, "type", quote("attack"), true);
         append(sb, "t", Long.toString(System.currentTimeMillis()), false);
@@ -74,6 +74,8 @@ public final class JsonLine {
         append(sb, "ty", fmt(target.getLocation().getY()), false);
         append(sb, "tz", fmt(target.getLocation().getZ()), false);
         append(sb, "alignDeg", fmt(align), false);
+        append(sb, "damaged", Boolean.toString(damaged), false);
+        append(sb, "source", quote(source), false);
         sb.append('}');
         return sb.toString();
     }

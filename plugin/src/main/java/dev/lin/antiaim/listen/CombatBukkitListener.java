@@ -1,10 +1,8 @@
 package dev.lin.antiaim.listen;
 
-import dev.lin.antiaim.check.AimAttackAlignCheck;
 import dev.lin.antiaim.data.PlayerData;
 import dev.lin.antiaim.data.PlayerDataService;
-import dev.lin.antiaim.record.CaptureService;
-import dev.lin.antiaim.util.AimMath;
+import dev.lin.antiaim.record.AttackProbe;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -12,27 +10,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-
-import java.io.IOException;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 /**
- * Damage-based attack fallback (PacketEvents InteractEntity may be missing on some hosts).
+ * Bukkit fallbacks: damage (incl. cancelled) + interact-entity.
  */
 public final class CombatBukkitListener implements Listener {
-    private final CaptureService captures;
     private final PlayerDataService players;
-    private final AimAttackAlignCheck align;
-    private final boolean recorderEnabled;
+    private final AttackProbe attacks;
 
-    public CombatBukkitListener(CaptureService captures, PlayerDataService players,
-                                AimAttackAlignCheck align, boolean recorderEnabled) {
-        this.captures = captures;
+    public CombatBukkitListener(PlayerDataService players, AttackProbe attacks) {
         this.players = players;
-        this.align = align;
-        this.recorderEnabled = recorderEnabled;
+        this.attacks = attacks;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onDamage(EntityDamageByEntityEvent event) {
         Player attacker = resolvePlayerAttacker(event.getDamager());
         if (attacker == null) {
@@ -40,34 +33,20 @@ public final class CombatBukkitListener implements Listener {
         }
         Entity target = event.getEntity();
         PlayerData data = players.get(attacker);
-        long now = System.currentTimeMillis();
-        int id = target.getEntityId();
-        if (data.shouldDedupAttack(now, id, 50L)) {
+        boolean damaged = !event.isCancelled() && event.getFinalDamage() > 0.0;
+        attacks.onAttack(attacker, data, target, target.getEntityId(), damaged, "damage", 80L);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onInteractEntity(PlayerInteractEntityEvent event) {
+        // Right-click path; left-click attacks usually go through damage/packet/swing_ray.
+        if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
-
-        float yaw = data.hasLook() ? data.lastYaw() : attacker.getLocation().getYaw();
-        float pitch = data.hasLook() ? data.lastPitch() : attacker.getLocation().getPitch();
-        double alignDeg = AimMath.alignDeg(attacker, target, yaw, pitch);
-
-        if (align.enabled() && alignDeg >= 0) {
-            align.onAttack(attacker, data, now, id, alignDeg);
-        } else {
-            data.markCombat(now);
-        }
-
-        if (!recorderEnabled) {
-            return;
-        }
-        CaptureService.ActiveCapture capture = captures.get(attacker);
-        if (capture == null) {
-            return;
-        }
-        try {
-            capture.writeAttack(attacker, target, yaw, pitch);
-        } catch (IOException e) {
-            attacker.getServer().getLogger().warning("[LinAntiAim] attack write failed: " + e.getMessage());
-        }
+        Player attacker = event.getPlayer();
+        Entity target = event.getRightClicked();
+        PlayerData data = players.get(attacker);
+        attacks.onAttack(attacker, data, target, target.getEntityId(), false, "bukkit_interact", 80L);
     }
 
     private static Player resolvePlayerAttacker(Entity damager) {

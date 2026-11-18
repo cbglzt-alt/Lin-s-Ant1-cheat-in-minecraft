@@ -7,10 +7,10 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import dev.lin.antiaim.check.AimAttackAlignCheck;
 import dev.lin.antiaim.check.AimSnapCheck;
 import dev.lin.antiaim.data.PlayerData;
 import dev.lin.antiaim.data.PlayerDataService;
+import dev.lin.antiaim.record.AttackProbe;
 import dev.lin.antiaim.record.CaptureService;
 import dev.lin.antiaim.util.AimMath;
 import org.bukkit.Bukkit;
@@ -27,17 +27,17 @@ public final class CombatPacketListener extends PacketListenerAbstract {
     private final CaptureService captures;
     private final PlayerDataService players;
     private final AimSnapCheck aimSnap;
-    private final AimAttackAlignCheck align;
+    private final AttackProbe attacks;
     private final boolean recorderEnabled;
 
     public CombatPacketListener(CaptureService captures, PlayerDataService players,
-                                AimSnapCheck aimSnap, AimAttackAlignCheck align,
+                                AimSnapCheck aimSnap, AttackProbe attacks,
                                 boolean recorderEnabled) {
-        super(PacketListenerPriority.MONITOR);
+        super(PacketListenerPriority.NORMAL);
         this.captures = captures;
         this.players = players;
         this.aimSnap = aimSnap;
-        this.align = align;
+        this.attacks = attacks;
         this.recorderEnabled = recorderEnabled;
     }
 
@@ -65,15 +65,11 @@ public final class CombatPacketListener extends PacketListenerAbstract {
                 return;
             }
             if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
-                handleAttack(player, data, capture, new WrapperPlayClientInteractEntity(event));
+                handleInteract(player, data, new WrapperPlayClientInteractEntity(event));
                 return;
             }
             if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
-                long now = System.currentTimeMillis();
-                data.markCombat(now);
-                if (capture != null) {
-                    capture.writeSwing();
-                }
+                handleSwing(player, data, capture);
             }
         } catch (IOException e) {
             Bukkit.getLogger().warning("[LinAntiAim] write failed: " + e.getMessage());
@@ -115,34 +111,26 @@ public final class CombatPacketListener extends PacketListenerAbstract {
         }
     }
 
-    private void handleAttack(Player player, PlayerData data, CaptureService.ActiveCapture capture,
-                              WrapperPlayClientInteractEntity packet) throws IOException {
+    private void handleInteract(Player player, PlayerData data, WrapperPlayClientInteractEntity packet) {
         if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
             return;
         }
         int id = packet.getEntityId();
-        long now = System.currentTimeMillis();
-        if (data.shouldDedupAttack(now, id, 50L)) {
-            return;
-        }
-
         Entity target = findEntity(player, id);
-        float yaw = data.hasLook() ? data.lastYaw() : player.getLocation().getYaw();
-        float pitch = data.hasLook() ? data.lastPitch() : player.getLocation().getPitch();
-        double alignDeg = target != null ? AimMath.alignDeg(player, target, yaw, pitch) : -1;
+        attacks.onAttack(player, data, target, id, false, "packet", 80L);
+    }
 
-        if (align.enabled() && alignDeg >= 0) {
-            align.onAttack(player, data, now, id, alignDeg);
-        } else {
-            data.markCombat(now);
-        }
-
+    private void handleSwing(Player player, PlayerData data, CaptureService.ActiveCapture capture)
+            throws IOException {
+        long now = System.currentTimeMillis();
+        data.markCombat(now);
         if (capture != null) {
-            if (target == null) {
-                capture.writeAttackUnknown(now, yaw, pitch, id);
-            } else {
-                capture.writeAttack(player, target, yaw, pitch);
-            }
+            capture.writeSwing();
+        }
+        // Fallback when InteractEntity never arrives on this host: swing + look ray.
+        Entity target = AttackProbe.rayTarget(player, 4.5);
+        if (target != null) {
+            attacks.onAttack(player, data, target, target.getEntityId(), false, "swing_ray", 100L);
         }
     }
 

@@ -1,6 +1,10 @@
 package dev.lin.antiaim.command;
 
+import dev.lin.antiaim.data.PlayerData;
+import dev.lin.antiaim.data.PlayerDataService;
+import dev.lin.antiaim.punish.PunishmentService;
 import dev.lin.antiaim.record.CaptureService;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -22,9 +26,13 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
     );
 
     private final CaptureService captures;
+    private final PlayerDataService players;
+    private final PunishmentService punishment;
 
-    public AcCommand(CaptureService captures) {
+    public AcCommand(CaptureService captures, PlayerDataService players, PunishmentService punishment) {
         this.captures = captures;
+        this.players = players;
+        this.punishment = punishment;
     }
 
     @Override
@@ -38,15 +46,30 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length < 1) {
-            player.sendMessage("Usage: /ac record <start|stop|status> [label]");
+            usage(player);
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("vl")) {
+            showVl(player, player.getUniqueId());
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("status")) {
+            showVl(player, player.getUniqueId());
+            player.sendMessage(captures.statusLine(player));
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("reset")) {
+            PlayerData data = players.get(player);
+            punishment.reset(data);
+            player.sendMessage("VL reset.");
             return true;
         }
         if (!args[0].equalsIgnoreCase("record")) {
-            player.sendMessage("Usage: /ac record <start|stop|status> [label]");
+            usage(player);
             return true;
         }
         if (args.length < 2) {
-            player.sendMessage("Usage: /ac record <start|stop|status> [label]");
+            usage(player);
             return true;
         }
         String sub = args[1].toLowerCase(Locale.ROOT);
@@ -77,10 +100,28 @@ public final class AcCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private void showVl(Player viewer, java.util.UUID target) {
+        PlayerData data = players.get(target);
+        if (data == null) {
+            viewer.sendMessage("VL: no data.");
+            return;
+        }
+        viewer.sendMessage("VL total=" + data.totalVl()
+                + " (cancel@" + punishment.cancelAtVl() + ", kick@" + punishment.kickAtVl() + ")"
+                + " snap=" + data.aimSnapVl()
+                + " align=" + data.alignVl()
+                + " aura=" + data.auraVl()
+                + (data.damageCancelled(System.currentTimeMillis()) ? " [damage-cancel ACTIVE]" : ""));
+    }
+
+    private static void usage(CommandSender s) {
+        s.sendMessage("Usage: /ac record <start|stop|status> [label] | /ac vl | /ac reset");
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("record"), args[0]);
+            return filter(List.of("record", "vl", "status", "reset"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("record")) {
             return filter(List.of("start", "stop", "status"), args[1]);

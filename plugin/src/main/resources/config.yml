@@ -1,6 +1,6 @@
-# LinAntiAim — Phase 1 recorder + Aim* alert-only
-# Thresholds: docs/detections/aim-provisional.md
-# Plan: docs/detections/implementation-plan.md
+# LinAntiAim 0.3.1 — recorder + Aim* checks + tiered punishment
+# Thresholds from A1/B1/B2/C1 captures — docs/detections/aim-provisional.md
+# Punishment tiers — docs/detections/punishment.md
 
 recorder:
   enabled: true
@@ -17,18 +17,47 @@ checks:
     decay_no_combat_ms: 5000
     alert_cooldown_ms: 3000
     teleport_exempt_ms: 2000
+    # Only score snaps shortly after an entity attack (reduces mining/freelook FP)
+    require_recent_attack_ms: 3000
   align:
     enabled: true
-    # No medium+ alerts until legit A1 attack baseline exists
-    debug_only: true
+    debug_only: false
     window: 20
+    min_samples: 10
+    # A1 mean10≈11.9°; B1 mean10≈4.2° → flag when mean stays ≤8°
+    mean_max_deg: 8.0
+    tight_deg: 8.0
+    tight_min_count: 6
+    streak_to_alert: 2
+    alert_cooldown_ms: 3000
+    decay_ms: 8000
+  aura_switch:
+    enabled: true
+    # One swing hitting several mobs is legit (sweep). Aura shows a target far
+    # outside the look direction in the same cluster.
+    cluster_ms: 120
+    min_distinct: 3
+    wild_align_deg: 60.0
+    streak_to_alert: 2
+    alert_cooldown_ms: 3000
+    decay_ms: 8000
 
+# Accumulated VL drives escalation. Decays 1/s while quiet.
 punish:
+  enabled: true
+  vl_decay_per_sec: 1
+  # Tier 2: cancel outgoing damage for N seconds
   cancel_damage: false
+  cancel_damage_at_vl: 12
+  cancel_damage_seconds: 5
+  # Tier 3: kick
   kick: false
+  kick_at_vl: 24
+  kick_message: "Unfair advantage detected ({check}, vl={vl})."
+  bypass_permission: linantiaim.bypass
+  action_cooldown_ms: 4000
 
 alerts:
   jsonl: true
   broadcast: true
-  # Set true to print AimAttackAlign DEBUG lines to console
   log_debug: false

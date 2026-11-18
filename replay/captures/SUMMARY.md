@@ -4,13 +4,31 @@
 标签纠正：[`LABEL_CORRECTIONS.md`](LABEL_CORRECTIONS.md)  
 实施计划：[`../../docs/detections/implementation-plan.md`](../../docs/detections/implementation-plan.md)
 
-## 证据水位（2026-11-18）
+## 证据水位（2026-11-18 晚）
 
 | 检查 | 状态 | 说明 |
 |---|---|---|
-| AimSnap | **可实现告警** | 11-07 A1 vs B2 look |
-| AimAttackAlign | **骨架 only** | 11-17 有作弊 B1/C2 attack；缺合法 A1 attack |
-| AuraSwitch | **阻塞** | 缺带 attack 的 C1 |
+| AimSnap | **已上线告警** | B2 ≥20°≈30.7%；需近 3s 内有实体攻击 |
+| AimAttackAlign | **已上线告警** | A1 mean≈11.4° vs B1≈4.2°；mean≤8° 且 tight≥6/窗 |
+| AuraSwitch | **已上线告警** | 同簇(120ms) ≥3 目标且含 ≥60° 视野外命中；横扫不再误报 |
+| 分级处罚 | **已实现，默认关** | 告警 → 取消伤害(vl≥12) → 踢出(vl≥24) |
+
+## 批次 2026-11-18（首次带 attack 全矩阵）
+
+| 文件 | label | attacks | align p50 | 备注 |
+|---|---|---:|---|---|
+| `20261118-133910_…_A1-legit-melee.jsonl` | A1 合法 | **44** | 11.89° | Align 误报基线（关键） |
+| `20261118-134526_…_C1-ka-max3.jsonl` | C1 max3 | **159** | 35.44° | 8 个 targetId；Aura 数据源 |
+| `20261118-134735_…_B2-ka-onhit.jsonl` | B2 OnHit | **59** | 45.93° | ≥20° 占 30.7%；Snap 数据源 |
+
+> 采集来源全为 `damage`（含取消的伤害也记，`damaged=false` 标注）。
+
+## AuraSwitch 误报修订（2026-11-18）
+
+旧规则「1s ≥3 distinct」把**正常横扫**判成光环。  
+现规则：同簇 120ms 内 ≥3 目标 **且** 其中至少一次 `alignDeg ≥ 60°`（视野外目标）。
+
+回放：A1/B1/B2/C2 → 0；C1 → 25 触发簇。
 
 ## 批次 2026-11-17（有 attack）
 
@@ -41,6 +59,6 @@
 
 ## 下一步（数据）
 
-1. **P0** 补录带 attack 的 `A1-legit-melee`  
-2. **P1** 补录带 attack 的 `C1-ka-max3`  
-3. 代码侧按 [`implementation-plan.md`](../../docs/detections/implementation-plan.md) 做 AimSnap + 录包对照日志  
+补录已完成（A1 / B2 / C1 均带 attack）。  
+代码侧已实现 AimSnap / Align / AuraSwitch + 分级处罚，见 [`implementation-plan.md`](../../docs/detections/implementation-plan.md)。  
+后续若要扩展：GCD 需同玩家多会话灵敏度样本；Aura 若仍误报可再录「大面积横扫」对照。  

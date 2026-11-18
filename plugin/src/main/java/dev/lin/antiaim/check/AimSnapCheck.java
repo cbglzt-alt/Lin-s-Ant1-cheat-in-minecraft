@@ -3,6 +3,7 @@ package dev.lin.antiaim.check;
 import dev.lin.antiaim.alert.AlertLevel;
 import dev.lin.antiaim.alert.AlertService;
 import dev.lin.antiaim.data.PlayerData;
+import dev.lin.antiaim.punish.PunishmentService;
 import dev.lin.antiaim.util.AimMath;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -11,11 +12,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Provisional AimSnap — see docs/detections/aim-provisional.md.
- * Alert-only; does not cancel damage or kick.
+ * AimSnap — tuned on A1 vs B2 look captures.
+ * Only evaluates while a recent entity-attack exists (cuts mining/freelook FPs).
  */
 public final class AimSnapCheck {
     private final AlertService alerts;
+    private final PunishmentService punishment;
     private final boolean enabled;
     private final int window;
     private final double bigYawDeg;
@@ -25,9 +27,11 @@ public final class AimSnapCheck {
     private final long decayNoCombatMs;
     private final long alertCooldownMs;
     private final int evalEvery;
+    private final long requireRecentAttackMs;
 
-    public AimSnapCheck(AlertService alerts, FileConfiguration config) {
+    public AimSnapCheck(AlertService alerts, PunishmentService punishment, FileConfiguration config) {
         this.alerts = alerts;
+        this.punishment = punishment;
         this.enabled = config.getBoolean("checks.aimsnap.enabled", true);
         this.window = Math.max(10, config.getInt("checks.aimsnap.window", 40));
         this.bigYawDeg = config.getDouble("checks.aimsnap.big_yaw_deg", 20.0);
@@ -37,6 +41,7 @@ public final class AimSnapCheck {
         this.decayNoCombatMs = config.getLong("checks.aimsnap.decay_no_combat_ms", 5000L);
         this.alertCooldownMs = config.getLong("checks.aimsnap.alert_cooldown_ms", 3000L);
         this.evalEvery = Math.max(1, config.getInt("checks.aimsnap.eval_every", 10));
+        this.requireRecentAttackMs = config.getLong("checks.aimsnap.require_recent_attack_ms", 3000L);
     }
 
     public int windowSize() {
@@ -55,6 +60,10 @@ public final class AimSnapCheck {
             return;
         }
         decay(data, now);
+        if (data.lastAttackMs() <= 0 || now - data.lastAttackMs() > requireRecentAttackMs) {
+            data.setAimSnapStreak(0);
+            return;
+        }
         if (data.rotWindow().size() < window) {
             return;
         }
@@ -78,36 +87,37 @@ public final class AimSnapCheck {
         boolean trigger = ratio >= bigRatio || p90 >= p90Deg;
 
         if (trigger) {
-            data.markCombat(now);
             data.setAimSnapStreak(data.aimSnapStreak() + 1);
             data.addAimSnapVl(1);
         } else {
             data.setAimSnapStreak(0);
         }
 
-        if (data.aimSnapStreak() >= streakToAlert) {
-            if (now - data.lastSnapAlertMs() >= alertCooldownMs) {
-                data.setLastSnapAlertMs(now);
-                Map<String, Object> fields = new LinkedHashMap<>();
-                fields.put("vl", data.aimSnapVl());
-                fields.put("streak", data.aimSnapStreak());
-                fields.put("bigRatio", round3(ratio));
-                fields.put("p90", round3(p90));
-                fields.put("window", abs.length);
-                alerts.emit(player, "AimSnap", AlertLevel.MEDIUM,
-                        String.format(java.util.Locale.ROOT,
-                                "vl=%d streak=%d bigRatio=%.1f%% p90=%.1f°",
-                                data.aimSnapVl(), data.aimSnapStreak(), ratio * 100.0, p90),
-                        fields);
-            }
+        if (data.aimSnapStreak() >= streakToAlert
+                && now - data.lastSnapAlertMs() >= alertCooldownMs) {
+            data.setLastSnapAlertMs(now);
+            Map<String, Object> fields = new LinkedHashMap<>();
+            fields.put("vl", data.aimSnapVl());
+            fields.put("streak", data.aimSnapStreak());
+            fields.put("bigRatio", round3(ratio));
+            fields.put("p90", round3(p90));
+            fields.put("window", abs.length);
+            fields.put("totalVl", data.totalVl());
+            alerts.emit(player, "AimSnap", AlertLevel.MEDIUM,
+                    String.format(java.util.Locale.ROOT,
+                            "vl=%d streak=%d bigRatio=%.1f%% p90=%.1f°",
+                            data.aimSnapVl(), data.aimSnapStreak(), ratio * 100.0, p90),
+                    fields);
+            punishment.addVl(player, data, 1, "AimSnap",
+                    String.format(java.util.Locale.ROOT, "p90=%.1f° big=%.1f%%", p90, ratio * 100.0));
         }
     }
 
     private void decay(PlayerData data, long now) {
-        if (data.lastCombatMs() <= 0) {
+        if (data.lastAttackMs() <= 0) {
             return;
         }
-        if (now - data.lastCombatMs() >= decayNoCombatMs) {
+        if (now - data.lastAttackMs() >= decayNoCombatMs) {
             data.setAimSnapVl(0);
             data.setAimSnapStreak(0);
         }

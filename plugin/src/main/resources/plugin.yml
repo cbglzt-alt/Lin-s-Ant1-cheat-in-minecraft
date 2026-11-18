@@ -18,3 +18,6 @@ permissions:
   linantiaim.alerts:
     description: Receive medium+ aim alerts in chat
     default: op
+  linantiaim.bypass:
+    description: Exempt from cancel-damage / kick punishment
+    default: false

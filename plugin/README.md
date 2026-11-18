@@ -1,15 +1,24 @@
-# LinAntiAim（Phase 1 · 录包 + AimSnap 告警）
+# LinAntiAim（Phase 1 · 录包 + Aim* 检测 + 分级处罚）
 
-服务端插件：`/ac record` 采集 + **AimSnap 告警-only**（默认不踢、不取消伤害）。  
+服务端插件：`/ac record` + **AimSnap / AimAttackAlign / AuraSwitch** + VL 分档处罚。  
 计划：[`../docs/detections/implementation-plan.md`](../docs/detections/implementation-plan.md)  
-阈值：[`../docs/detections/aim-provisional.md`](../docs/detections/aim-provisional.md)
+检测阈值：[`../docs/detections/aim-provisional.md`](../docs/detections/aim-provisional.md)  
+处罚分档：[`../docs/detections/punishment.md`](../docs/detections/punishment.md)
+
+## 命令
+
+```
+/ac record start <label>   /ac record stop   /ac record status
+/ac vl        # 查看累计 VL
+/ac reset     # 清零（测试）
+```
 
 ## 构建
 
 ```bash
 cd plugin
 ./gradlew jar
-# 产物: build/libs/LinAntiAim-0.2.0-SNAPSHOT.jar
+# 产物: build/libs/LinAntiAim-0.3.0-SNAPSHOT.jar
 ```
 
 ## 部署（简幻欢）

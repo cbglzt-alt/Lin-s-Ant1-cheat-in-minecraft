@@ -1,49 +1,57 @@
-# Aim* 阈值（provisional）
+# Aim* 阈值（provisional）· 2026-11-18
 
-数据：[`../rea/meteor/batch-2026-11-07.md`](../rea/meteor/batch-2026-11-07.md)（look）+ 2026-11-17 attack 场（见 [`../../replay/captures/SUMMARY.md`](../../replay/captures/SUMMARY.md)）。  
-实施顺序：[`implementation-plan.md`](implementation-plan.md)。  
-原则：VL + 衰减；默认只告警；踢人开关默认关（见 HANDOFF）。
+数据：`replay/captures/` 中带 attack 的 A1/B1/B2/C1/C2 + 11-07 look。  
+原则：VL + 衰减；**默认只告警**；踢人/取消伤害默认关。
 
-## AimSnap（look 窗）— 可实现
+## 样本摘要
 
-| 参数 | provisional | 依据 |
+| 场 | align p50 / mean10 p50 | \|dYaw\|≥20° | 1s 内不同 targetId |
+|---|---|---:|---:|
+| A1 合法 | 11.9° / 11.4° | 0% | 1 |
+| B1 Always | 3.95° / 4.2° | ~0% | 1 |
+| B2 OnHit | 45.9° / 49° | **30.7%** | 1 |
+| C1 max3 | 35.4° / 46° | 12.8% | **7** |
+| C2 only-on-look | 5.4° / 6.0° | 1.9% | 1 |
+
+## AimSnap
+
+| 参数 | 值 | 依据 |
 |---|---|---|
-| 窗长 | 最近 **40** 个 hasRot look | ~2s@20Hz 量级，可配置 |
-| 大转定义 | \|dYaw\| **≥ 20°** | A1 仅 2.2% 超过；B2 29% |
-| 加分条件 | 窗内大转占比 **≥ 12%**，或窗内 p90(\|dYaw\|) **≥ 25°** | 介于 A1 与 B2；避开 B1 常态跟踪 |
-| VL | +1 / 触发窗；连续 **3** 窗才告警 | 中缓冲 |
-| 衰减 | 无战斗 5s 清零或 −1/2s | |
-| 豁免 | 传送后 2s、载具、橡皮筋大幅度拉回 | |
+| window / big_yaw | 40 / ≥20° | A1 0% vs B2 30.7% |
+| big_ratio / p90 | ≥12% / ≥25° | 同左 |
+| streak | 3 | 缓冲 |
+| **require_recent_attack_ms** | **3000** | 避免挖树/闲逛误报 |
 
-**预期**：默认可抓 **OnHit**；对 **Always** 可能偏弱（跟踪时 Δ 小）→ 必须叠加 Align。
+预期：抓 **OnHit**；Always 主要靠 Align。
 
-## AimAttackAlign — 骨架 + 作弊侧参考（非正式阈值）
+## AimAttackAlign
 
-| 样本 | alignDeg p50 | min | n |
-|---|---:|---:|---:|
-| B1 Always（2026-11-17） | 3.95° | 0.19° | 82 |
-| C2 only-on-look（2026-11-17） | 5.40° | 0.00° | 67 |
-| A1 合法 attack | **缺** | — | — |
+| 参数 | 值 | 依据 |
+|---|---|---|
+| window / min_samples | 20 / 10 | |
+| mean_max_deg | **8.0** | A1 mean10≈11.4；B1≈4.2 |
+| tight_deg / tight_min_count | 8.0 / 6 | A1 几乎不满足；B1 常满足 |
+| streak | 2 | |
 
-**Blocked（处罚阈值）**：无合法 A1 attack 前，Align **只打 debug/低 VL 日志**，不升中档告警、不处罚。
+预期：抓 **Always / only-on-look**；不抓 OnHit/多目标乱切（align 大）。
 
-## AuraSwitch — 阻塞
+## AuraSwitch
 
-缺带 `attack` + 多 `targetId` 的 C1。接口可预留；短窗 distinct targetId ≥2 的加分逻辑等补录后再填。
+原规则「1 秒内 ≥3 个不同 targetId」会误判**正常横扫**（一次挥击打到多个怪，它们都在视野前方）。
 
-## 处罚档（与累计设计一致）
+现行规则（2026-11-18 修订）：
 
-| VL 档 | 动作（默认） |
-|---|---|
-| 低 | 仅 debug 日志 |
-| 中 | 向 OP/`linantiaim.alerts` 告警 + 记片段 |
-| 高 | 可配置取消伤害 |
-| 极高 | 可配置踢出（**默认 false**） |
+| 参数 | 值 | 依据 |
+|---|---|---|
+| cluster_ms | **120** | 一次挥击的多目标命中落在这个窗内 |
+| min_distinct | **3** | |
+| wild_align_deg | **60°** | 横扫的每个目标都在视野内（align 小）；光环会打视野外的目标 |
 
-单 Check 升温不够时：要求 `AimSnap` 与 `AimAttackAlign` **同时**处于中档以上再升「高」。
+回放验证：A1/B1/B2/C2 → **0** 触发；C1 → 25 个触发簇。
 
-## 明确不做（本阶段）
+> 若仍有横扫误报，把 `min_distinct` 提到 4，或把 `cluster_ms` 降到 80。
 
-- 不根据单次大转踢人  
-- 不在无合法 Align 基线时对 Always 默认配置宣称「可稳定处罚」  
+## 处罚
 
+分档见 [`punishment.md`](punishment.md)：VL 累计 → 告警（自动）→ 取消伤害 → 踢出。  
+默认 `cancel_damage=false`、`kick=false`；先观察 VL 曲线再逐档开启。

@@ -24,10 +24,23 @@ public final class PlayerData {
     private int aimSnapStreak;
     private int rotSinceWindowEval;
     private long lastCombatMs;
+    private long lastAttackMs;
     private long lastSnapAlertMs;
+    private long lastAlignAlertMs;
+    private long lastAuraAlertMs;
+    private int alignVl;
+    private int alignStreak;
+    private int auraVl;
+    private int auraStreak;
     private long exemptUntilMs;
     private long lastAttackDedupMs;
     private int lastAttackDedupTarget = Integer.MIN_VALUE;
+
+    private int totalVl;
+    private long lastVlMs;
+    private long damageCancelUntilMs;
+    private long lastPunishActionMs;
+    private boolean kicked;
 
     public PlayerData(UUID uuid, String name) {
         this.uuid = uuid;
@@ -90,6 +103,7 @@ public final class PlayerData {
             alignWindow.removeFirst();
         }
         lastCombatMs = t;
+        lastAttackMs = t;
     }
 
     public boolean shouldDedupAttack(long t, int targetId, long windowMs) {
@@ -129,6 +143,15 @@ public final class PlayerData {
         lastCombatMs = t;
     }
 
+    public long lastAttackMs() {
+        return lastAttackMs;
+    }
+
+    public void markAttack(long t) {
+        lastAttackMs = t;
+        lastCombatMs = t;
+    }
+
     public long lastSnapAlertMs() {
         return lastSnapAlertMs;
     }
@@ -137,11 +160,113 @@ public final class PlayerData {
         lastSnapAlertMs = t;
     }
 
+    public long lastAlignAlertMs() {
+        return lastAlignAlertMs;
+    }
+
+    public void setLastAlignAlertMs(long t) {
+        lastAlignAlertMs = t;
+    }
+
+    public long lastAuraAlertMs() {
+        return lastAuraAlertMs;
+    }
+
+    public void setLastAuraAlertMs(long t) {
+        lastAuraAlertMs = t;
+    }
+
+    public int alignVl() {
+        return alignVl;
+    }
+
+    public void addAlignVl(int delta) {
+        alignVl = Math.max(0, alignVl + delta);
+    }
+
+    public void setAlignVl(int vl) {
+        alignVl = Math.max(0, vl);
+    }
+
+    public int alignStreak() {
+        return alignStreak;
+    }
+
+    public void setAlignStreak(int streak) {
+        alignStreak = Math.max(0, streak);
+    }
+
+    public int auraVl() {
+        return auraVl;
+    }
+
+    public void addAuraVl(int delta) {
+        auraVl = Math.max(0, auraVl + delta);
+    }
+
+    public void setAuraVl(int vl) {
+        auraVl = Math.max(0, vl);
+    }
+
+    public int auraStreak() {
+        return auraStreak;
+    }
+
+    public void setAuraStreak(int streak) {
+        auraStreak = Math.max(0, streak);
+    }
+
     public void exemptUntil(long ms) {
         exemptUntilMs = ms;
     }
 
     public boolean isExempt(long now) {
         return now < exemptUntilMs;
+    }
+
+    public int totalVl() {
+        return totalVl;
+    }
+
+    public void setTotalVl(int vl) {
+        totalVl = Math.max(0, vl);
+        lastVlMs = System.currentTimeMillis();
+    }
+
+    public void addTotalVl(int delta) {
+        totalVl = Math.max(0, totalVl + delta);
+        lastVlMs = System.currentTimeMillis();
+    }
+
+    public long lastVlMs() {
+        return lastVlMs;
+    }
+
+    public long damageCancelUntilMs() {
+        return damageCancelUntilMs;
+    }
+
+    public void cancelDamageUntil(long ms) {
+        damageCancelUntilMs = ms;
+    }
+
+    public boolean damageCancelled(long now) {
+        return now < damageCancelUntilMs;
+    }
+
+    public long lastPunishActionMs() {
+        return lastPunishActionMs;
+    }
+
+    public void markPunishAction(long t) {
+        lastPunishActionMs = t;
+    }
+
+    public boolean kicked() {
+        return kicked;
+    }
+
+    public void markKicked() {
+        kicked = true;
     }
 }

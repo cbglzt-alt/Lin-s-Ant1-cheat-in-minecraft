@@ -96,9 +96,18 @@ PacketEvents / Bukkit
 ```
 ☑ 计划文档（本文件）
 ☑ PlayerData + AlertService
-☑ AimSnap 告警-only 可配置（待简幻欢 smoke：合法安静 / OnHit 告警）
-☑ AimAttackAlign 仅日志骨架
-☑ 录包进行中告警带 captureLabel
-□ 部署 LinAntiAim-0.2.0-SNAPSHOT.jar 到简幻欢并 smoke
-□ （并行）至少 1 场带 attack 的 A1 入库后，再开 Align 阈值 PR
+☑ AimSnap 告警 + VL
+☑ AimAttackAlign 告警（A1 基线已补齐：mean≈12° vs B1≈4°）
+☑ AuraSwitch 告警（横扫安全：同簇 ≥3 目标且存在 ≥60° 视野外命中）
+☑ 分级处罚：告警 → 取消伤害(12) → 踢出(24)，默认后两档关
+☑ 攻击采集三源：packet / damage(含取消) / swing_ray
+☑ 部署 smoke：A1 安静；B1/C2 出 Align；B2 出 Snap；C1 出 Aura
+□ 线上灰度：先观察 VL 曲线，再开 cancel_damage，最后 kick
 ```
+
+## 7. 下一迭代候选
+
+1. **AimGCD**：需要真实灵敏度样本（同一玩家多会话）才能算量化网格。  
+2. **AttackOrder**：Look→Attack→Swing 固定时序；现有 `source` 字段已可支撑。  
+3. **Reach / 视线外命中**（S4）：`rotate=None` 的唯一抓手。  
+4. **VL 持久化**：跨重启累计，防「重进服清 VL」。
